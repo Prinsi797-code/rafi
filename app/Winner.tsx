@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Updates from 'expo-updates';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -9,6 +10,7 @@ import {
     Image,
     Linking,
     Platform,
+    ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -52,7 +54,7 @@ export default function PickWinner() {
     const [substitutes, setSubstitutes] = useState<WinnerItem[]>([]);
     const [postData, setPostData] = useState<any>(null);
     const [isScrolling, setIsScrolling] = useState(true);
-    
+
     // New state for animation
     const [revealedWinners, setRevealedWinners] = useState<WinnerItem[]>([]);
     const [revealedSubstitutes, setRevealedSubstitutes] = useState<WinnerItem[]>([]);
@@ -107,7 +109,7 @@ export default function PickWinner() {
     // Auto-scroll commenters 
     useEffect(() => {
         if (!allComments.length || !isScrolling || isRevealing) return;
-        
+
         let index = 0;
         scrollIntervalRef.current = setInterval(() => {
             const size = allComments.length || 1;
@@ -156,12 +158,12 @@ export default function PickWinner() {
 
         // Determine if current is a winner or substitute
         const isWinner = currentWinnerIndex < totalWinners;
-        const currentItem = isWinner 
-            ? winners[currentWinnerIndex] 
+        const currentItem = isWinner
+            ? winners[currentWinnerIndex]
             : substitutes[currentWinnerIndex - totalWinners];
 
         const username = currentItem?.user?.username ?? "";
-        
+
         // Find the commenter in the list
         const commenterIndex = allComments.findIndex(
             c => c.username === username
@@ -181,7 +183,7 @@ export default function PickWinner() {
 
             // Highlight and zoom animation
             setHighlightedUsername(username);
-            
+
             // Zoom in animation
             Animated.sequence([
                 Animated.timing(zoomAnim, {
@@ -310,7 +312,7 @@ export default function PickWinner() {
                                                 />
                                             ) : (
                                                 <View style={[
-                                                    styles.avatar, 
+                                                    styles.avatar,
                                                     styles.avatarFallback,
                                                     isHighlighted && styles.highlightedAvatar
                                                 ]} />
@@ -350,137 +352,164 @@ export default function PickWinner() {
                                         <Text style={styles.postCaption} numberOfLines={3}>
                                             {safeText(postData?.caption)}
                                         </Text>
+                                        {postData?.comments_count !== undefined && (
+                                            <View style={styles.commentCountContainer}>
+                                                <Text style={styles.commentIcon}>💬</Text>
+                                                <Text style={styles.commentCountText}>
+                                                    {postData.comments_count}
+                                                </Text>
+                                            </View>
+                                        )}
                                     </View>
                                 </View>
                             )}
                         </>
                     )}
 
-                    {revealedWinners.length > 0 && (
-                        <>
-                            <Text style={styles.sectionTitle}>🎉 Winners</Text>
-                            {revealedWinners.map((w, idx) => {
-                                const username = w?.user?.username ?? "";
-                                const text = w?.text ?? "";
-                                const profileUrl =
-                                    w?.user?.profile_url ?? (username ? `https://www.instagram.com/${username}` : undefined);
-                                const rank =
-                                    idx + 1 === 1
-                                        ? "1st"
-                                        : idx + 1 === 2
-                                            ? "2nd"
-                                            : idx + 1 === 3
-                                                ? "3rd"
-                                                : `${idx + 1}th`;
+                    <ScrollView
+                        style={{ flex: 1 }}
+                        contentContainerStyle={{ paddingBottom: 100 }} // space for button
+                        showsVerticalScrollIndicator={false}
+                    >
 
-                                return (
-                                    <View key={`win-${idx}`} style={styles.winnerContainer}>
-                                        <View style={styles.winnerRow}>
-                                            <TouchableOpacity
-                                                onPress={() => openProfile(profileUrl, username)}
-                                                style={styles.avatarContainer}
-                                            >
-                                                {safeImageUri(w?.user?.profile_pic_url) ? (
-                                                    <Image
-                                                        source={{ uri: w!.user!.profile_pic_url! }}
-                                                        style={styles.winnerAvatar}
-                                                    />
-                                                ) : (
-                                                    <View style={[styles.winnerAvatar, styles.avatarFallback]} />
-                                                )}
-                                            </TouchableOpacity>
+                        {revealedWinners.length > 0 && (
+                            <>
+                                <Text style={styles.sectionTitle}>🎉 Winners</Text>
+                                {revealedWinners.map((w, idx) => {
+                                    const username = w?.user?.username ?? "";
+                                    const text = w?.text ?? "";
+                                    const profileUrl =
+                                        w?.user?.profile_url ?? (username ? `https://www.instagram.com/${username}` : undefined);
+                                    const rank =
+                                        idx + 1 === 1
+                                            ? "1st"
+                                            : idx + 1 === 2
+                                                ? "2nd"
+                                                : idx + 1 === 3
+                                                    ? "3rd"
+                                                    : `${idx + 1}th`;
 
-                                            <TouchableOpacity
-                                                onPress={() => openProfile(profileUrl, username)}
-                                                style={styles.winnerInfo}
-                                            >
-                                                <Text style={styles.winnerName}>
-                                                    {safeText(username)} {w?.user?.is_verified ? "✅" : ""}
-                                                </Text>
-                                                {!!text && (
-                                                    <Text style={styles.winnerText} numberOfLines={2}>
-                                                        {safeText(text)}
+                                    return (
+                                        <View key={`win-${idx}`} style={styles.winnerContainer}>
+                                            <View style={styles.winnerRow}>
+                                                <TouchableOpacity
+                                                    onPress={() => openProfile(profileUrl, username)}
+                                                    style={styles.avatarContainer}
+                                                >
+                                                    {safeImageUri(w?.user?.profile_pic_url) ? (
+                                                        <Image
+                                                            source={{ uri: w!.user!.profile_pic_url! }}
+                                                            style={styles.winnerAvatar}
+                                                        />
+                                                    ) : (
+                                                        <View style={[styles.winnerAvatar, styles.avatarFallback]} />
+                                                    )}
+                                                </TouchableOpacity>
+
+                                                <TouchableOpacity
+                                                    onPress={() => openProfile(profileUrl, username)}
+                                                    style={styles.winnerInfo}
+                                                >
+                                                    <Text style={styles.winnerName}>
+                                                        {safeText(username)} {w?.user?.is_verified ? "✅" : ""}
                                                     </Text>
-                                                )}
-                                            </TouchableOpacity>
+                                                    {!!text && (
+                                                        <Text style={styles.winnerText} numberOfLines={2}>
+                                                            {safeText(text)}
+                                                        </Text>
+                                                    )}
+                                                </TouchableOpacity>
 
-                                            <View style={styles.rankBadge}>
-                                                <Text style={styles.rankText}>{rank}</Text>
+                                                <View style={styles.rankBadge}>
+                                                    <Text style={styles.rankText}>{rank}</Text>
+                                                </View>
                                             </View>
                                         </View>
-                                    </View>
-                                );
-                            })}
-                        </>
-                    )}
+                                    );
+                                })}
+                            </>
+                        )}
 
-                    {revealedSubstitutes.length > 0 && (
-                        <>
-                            <Text style={styles.sectionTitle}>✨ Alternate Winners</Text>
-                            {revealedSubstitutes.map((w, idx) => {
-                                const username = w?.user?.username ?? "";
-                                const profileUrl =
-                                    w?.user?.profile_url ??
-                                    (username ? `https://www.instagram.com/${username}` : undefined);
-                                const text = w?.text ?? "";
-                                const rankNumber = revealedWinners.length + idx + 1;
-                                const rank =
-                                    rankNumber === 1
-                                        ? "1st"
-                                        : rankNumber === 2
-                                            ? "2nd"
-                                            : rankNumber === 3
-                                                ? "3rd"
-                                                : `${rankNumber}th`;
+                        {revealedSubstitutes.length > 0 && (
+                            <>
+                                <Text style={styles.sectionTitle}>✨ Alternate Winners</Text>
+                                {revealedSubstitutes.map((w, idx) => {
+                                    const username = w?.user?.username ?? "";
+                                    const profileUrl =
+                                        w?.user?.profile_url ??
+                                        (username ? `https://www.instagram.com/${username}` : undefined);
+                                    const text = w?.text ?? "";
+                                    const rankNumber = revealedWinners.length + idx + 1;
+                                    const rank =
+                                        rankNumber === 1
+                                            ? "1st"
+                                            : rankNumber === 2
+                                                ? "2nd"
+                                                : rankNumber === 3
+                                                    ? "3rd"
+                                                    : `${rankNumber}th`;
 
-                                return (
-                                    <View key={`sub-${idx}`} style={styles.winnerContainer}>
-                                        <View style={styles.winnerRow}>
-                                            <TouchableOpacity
-                                                onPress={() => openProfile(profileUrl, username)}
-                                                style={styles.avatarContainer}
-                                            >
-                                                {safeImageUri(w?.user?.profile_pic_url) ? (
-                                                    <Image
-                                                        source={{ uri: w!.user!.profile_pic_url! }}
-                                                        style={styles.winnerAvatar}
-                                                    />
-                                                ) : (
-                                                    <View style={[styles.winnerAvatar, styles.avatarFallback]} />
-                                                )}
-                                            </TouchableOpacity>
+                                    return (
+                                        <View key={`sub-${idx}`} style={styles.winnerContainer}>
+                                            <View style={styles.winnerRow}>
+                                                <TouchableOpacity
+                                                    onPress={() => openProfile(profileUrl, username)}
+                                                    style={styles.avatarContainer}
+                                                >
+                                                    {safeImageUri(w?.user?.profile_pic_url) ? (
+                                                        <Image
+                                                            source={{ uri: w!.user!.profile_pic_url! }}
+                                                            style={styles.winnerAvatar}
+                                                        />
+                                                    ) : (
+                                                        <View style={[styles.winnerAvatar, styles.avatarFallback]} />
+                                                    )}
+                                                </TouchableOpacity>
 
-                                            <TouchableOpacity
-                                                onPress={() => openProfile(profileUrl, username)}
-                                                style={styles.winnerInfo}
-                                            >
-                                                <Text style={styles.winnerName}>
-                                                    {safeText(username)} {w?.user?.is_verified ? "✅" : ""}
-                                                </Text>
-                                                {!!text && (
-                                                    <Text style={styles.winnerText} numberOfLines={2}>
-                                                        {safeText(text)}
+                                                <TouchableOpacity
+                                                    onPress={() => openProfile(profileUrl, username)}
+                                                    style={styles.winnerInfo}
+                                                >
+                                                    <Text style={styles.winnerName}>
+                                                        {safeText(username)} {w?.user?.is_verified ? "✅" : ""}
                                                     </Text>
-                                                )}
-                                            </TouchableOpacity>
-                                            <View style={styles.rankBadge}>
-                                                <Text style={styles.rankText}>{rank}</Text>
+                                                    {!!text && (
+                                                        <Text style={styles.winnerText} numberOfLines={2}>
+                                                            {safeText(text)}
+                                                        </Text>
+                                                    )}
+                                                </TouchableOpacity>
+                                                <View style={styles.rankBadge}>
+                                                    <Text style={styles.rankText}>{rank}</Text>
+                                                </View>
                                             </View>
                                         </View>
-                                    </View>
-                                );
-                            })}
-                        </>
-                    )}
-
+                                    );
+                                })}
+                            </>
+                        )}
+                    </ScrollView>
                     {showPostInfo && (
-                        <TouchableOpacity
-                            style={styles.endButton}
-                            onPress={() => router.replace("/")}
-                        >
-                            <Text style={styles.endButtonText}>End Giveaway</Text>
-                        </TouchableOpacity>
-                    )}
+    <TouchableOpacity
+        style={styles.endButton}
+        onPress={() => {
+            router.replace("/"); // Navigate to home
+            setTimeout(() => {
+                // Give a small delay before refreshing
+                if (Platform.OS === "android") {
+                    // For Android
+                    Expo.Updates.reloadAsync?.();
+                } else {
+                    // For iOS or fallback
+                    Updates.reloadAsync?.();
+                }
+            }, 500);
+        }}
+    >
+        <Text style={styles.endButtonText}>End Giveaway</Text>
+    </TouchableOpacity>
+)}
+
                 </View>
             </View>
         </GradientScreen>
@@ -498,18 +527,18 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 6,
     },
-    avatar: { 
-        width: 60, 
-        height: 60, 
-        borderRadius: 30, 
-        backgroundColor: "#eee" 
+    avatar: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: "#eee"
     },
     avatarFallback: { backgroundColor: "#e1e1e1" },
-    username: { 
-        fontSize: 12, 
-        marginTop: 6, 
-        maxWidth: 72, 
-        textAlign: "center" 
+    username: {
+        fontSize: 12,
+        marginTop: 6,
+        maxWidth: 72,
+        textAlign: "center"
     },
     highlighted: {
         backgroundColor: "rgba(255, 215, 0, 0.3)",
@@ -531,28 +560,52 @@ const styles = StyleSheet.create({
         marginBottom: 25,
         marginTop: 10,
     },
-    postRow: { 
-        flexDirection: "row", 
-        alignItems: "flex-start", 
-        marginBottom: 16 
+    postRow: {
+        flexDirection: "row",
+        alignItems: "flex-start",
+        marginBottom: 16,
+        backgroundColor: "#fff",
+        borderRadius: 8,
+        padding: 8,
     },
-    postImage: { 
-        width: 90, 
-        height: 90, 
-        borderRadius: 8, 
-        backgroundColor: "#eee" 
+    postImage: {
+        width: 90,
+        height: 90,
+        borderRadius: 8,
+        backgroundColor: "#eee"
     },
-    postUser: { 
-        fontWeight: "bold", 
-        fontSize: 16, 
-        marginBottom: 4 
+    commentCountContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 6,
+        backgroundColor: '#8B3A99', // purple bubble background
+        alignSelf: 'flex-start',
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderRadius: 6,
+    },
+    commentIcon: {
+        color: '#fff',
+        fontSize: 14,
+        marginRight: 4,
+    },
+    commentCountText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+
+    postUser: {
+        fontWeight: "bold",
+        fontSize: 16,
+        marginBottom: 4
     },
     postCaption: { color: "#555" },
-    sectionTitle: { 
-        fontSize: 18, 
-        fontWeight: "bold", 
-        marginTop: 12, 
-        marginBottom: 10 
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        marginTop: 12,
+        marginBottom: 10
     },
     winnerContainer: {
         marginBottom: 10,
@@ -566,9 +619,9 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 1,
     },
-    winnerRow: { 
-        flexDirection: "row", 
-        alignItems: "center" 
+    winnerRow: {
+        flexDirection: "row",
+        alignItems: "center"
     },
     rankBadge: {
         width: 38,
@@ -581,20 +634,20 @@ const styles = StyleSheet.create({
     },
     rankText: { fontWeight: "bold" },
     avatarContainer: { marginRight: 10 },
-    winnerAvatar: { 
-        width: 44, 
-        height: 44, 
-        borderRadius: 22, 
-        backgroundColor: "#eee" 
+    winnerAvatar: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: "#eee"
     },
     winnerInfo: { flex: 1 },
-    winnerName: { 
-        fontWeight: "bold", 
-        fontSize: 15 
+    winnerName: {
+        fontWeight: "bold",
+        fontSize: 15
     },
-    winnerText: { 
-        color: "#555", 
-        marginTop: 2 
+    winnerText: {
+        color: "#555",
+        marginTop: 2
     },
     endButton: {
         marginTop: 24,
@@ -603,9 +656,9 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         alignItems: "center",
     },
-    endButtonText: { 
-        color: "#fff", 
-        fontWeight: "bold", 
-        fontSize: 16 
+    endButtonText: {
+        color: "#fff",
+        fontWeight: "bold",
+        fontSize: 16
     },
 });

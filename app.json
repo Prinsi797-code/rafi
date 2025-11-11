@@ -1,19 +1,25 @@
 {
   "expo": {
-    "name": "RafiNewApp",
+    "name": "Randomly",
     "slug": "RafiNewApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/iconnew.png",
-    "scheme": "rafinewapp",
+    "scheme": "Randomly",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "displayName": "Randomly",
       "supportsTablet": true,
       "bundleIdentifier": "com.manishdhakecha.rafinewapp",
+       "capabilities": [
+        "in-app-purchase"
+      ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "LSApplicationQueriesSchemes": ["instagram"]
+        "LSApplicationQueriesSchemes": [
+          "instagram"
+        ]
       }
     },
     "android": {
@@ -54,9 +60,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "59ba58c2-0fc2-4c91-a387-bf1db90cd0e1"
+        "projectId": "d83f073d-eecc-45ff-bfcc-5146168f4ff1"
       }
     },
-    "owner": "princi607"
+    "owner": "hevin202"
   }
 }

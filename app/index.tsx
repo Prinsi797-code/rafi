@@ -182,12 +182,13 @@ export default function Giveaway(): JSX.Element {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0} // Header की height के हिसाब से adjust करो
       >
-        <ScrollView
+
+          <Header title="MENU" coins={coins} />
+          <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Header title="MENU" coins={coins} />
           <View style={styles.container}>
             <View style={styles.winnersWrapper}>
 

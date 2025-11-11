@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import * as InAppPurchases from 'expo-in-app-purchases';
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -16,9 +17,10 @@ import {
     View,
     useWindowDimensions,
 } from "react-native";
-import { BannerAd, BannerAdSize, InterstitialAd, TestIds } from 'react-native-google-mobile-ads';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 import Icon from "react-native-vector-icons/Ionicons";
 import GradientScreen from "../components/GradientScreen";
+
 // Type definitions
 interface PackageItem {
     id: number;
@@ -45,11 +47,53 @@ export default function Package() {
     const [selected, setSelected] = useState<number | null>(null);
     const [purchasing, setPurchasing] = useState(false);
     const [coins, setCoins] = useState<number>(0);
+    const [iapConnected, setIapConnected] = useState(false);
     const isMounted = useRef(true);
     const { width } = useWindowDimensions();
     const router = useRouter();
     const { t } = useTranslation();
-    const interstitial = InterstitialAd.createForAdRequest('ca-app-pub-3940256099942544/1033173712');
+
+    // Initialize In-App Purchases
+    useEffect(() => {
+        const initializeIAP = async () => {
+            try {
+                await InAppPurchases.connectAsync();
+                setIapConnected(true);
+                console.log('✅ IAP Connected');
+
+                // Set up purchase listener
+                InAppPurchases.setPurchaseListener(({ responseCode, results, errorCode }) => {
+                    if (responseCode === InAppPurchases.IAPResponseCode.OK) {
+                        results?.forEach(async (purchase) => {
+                            if (!purchase.acknowledged) {
+                                console.log('✅ Purchase successful:', purchase);
+                                // Finish the transaction
+                                await InAppPurchases.finishTransactionAsync(purchase, true);
+                                // Update your backend
+                                await updatePurchaseOnBackend(purchase);
+                            }
+                        });
+                    } else if (responseCode === InAppPurchases.IAPResponseCode.USER_CANCELED) {
+                        console.log('❌ User canceled purchase');
+                        Alert.alert('Cancelled', 'Purchase was cancelled');
+                    } else if (responseCode === InAppPurchases.IAPResponseCode.ERROR) {
+                        console.log('❌ Purchase error:', errorCode);
+                        Alert.alert('Error', 'Purchase failed. Please try again.');
+                    }
+                });
+            } catch (error) {
+                console.error('❌ IAP initialization error:', error);
+                setIapConnected(false);
+            }
+        };
+
+        initializeIAP();
+
+        return () => {
+            InAppPurchases.disconnectAsync();
+        };
+    }, []);
+
     const fetchPacks = useCallback(async (isRefresh = false) => {
         try {
             if (!isRefresh) setLoading(true);
@@ -114,31 +158,24 @@ export default function Package() {
         };
     }, [fetchPacks]);
 
-    const handlePurchase = async () => {
-        if (purchasing) return;
+    const updatePurchaseOnBackend = async (purchase: any) => {
         try {
-            setPurchasing(true);
             const storedResponse = await AsyncStorage.getItem("register_response");
-            if (!storedResponse) {
-                Alert.alert("❌ Error", "User not registered. Please login again.");
-                return;
-            }
+            if (!storedResponse) return;
+
             const parsed = JSON.parse(storedResponse);
             const token = parsed?.data?.bearer_token;
-            if (!token) {
-                Alert.alert("❌ Error", "Authentication token missing. Please re-register.");
-                return;
-            }
+
             const selectedPack = packs.find((p) => p.id === selected);
-            if (!selectedPack) {
-                Alert.alert("❌ Error", "Please select a package first.");
-                return;
-            }
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            if (!selectedPack) return;
+
             const response = await axios.post(
                 "https://insta.adinsignia.com/api/purchasecoin",
-                { product_id: selectedPack.product_id },
+                {
+                    product_id: selectedPack.product_id,
+                    transaction_id: purchase.transactionId,
+                    purchase_token: purchase.purchaseToken || purchase.transactionReceipt,
+                },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -146,10 +183,9 @@ export default function Package() {
                         Accept: "application/json",
                     },
                     timeout: 15000,
-                    signal: controller.signal,
                 }
             );
-            clearTimeout(timeoutId);
+
             if (response.data?.success === "success") {
                 Alert.alert(
                     "🎉 Purchase Successful",
@@ -161,23 +197,88 @@ export default function Package() {
                     await AsyncStorage.setItem("register_response", JSON.stringify(parsed));
                 }
                 fetchPacks();
+            }
+        } catch (error) {
+            console.error("Backend update error:", error);
+        } finally {
+            setPurchasing(false);
+        }
+    };
+
+    const handlePurchase = async () => {
+        
+        if (purchasing || !iapConnected) {
+            if (!iapConnected) {
+                Alert.alert("❌ Error", "In-app purchases not available. Please restart the app.");
+            }
+            return;
+        }
+        
+
+        try {
+            setPurchasing(true);
+
+            const storedResponse = await AsyncStorage.getItem("register_response");
+            if (!storedResponse) {
+                Alert.alert("❌ Error", "User not registered. Please login again.");
+                setPurchasing(false);
+                return;
+            }
+
+            const selectedPack = packs.find((p) => p.id === selected);
+            if (!selectedPack) {
+                Alert.alert("❌ Error", "Please select a package first.");
+                setPurchasing(false);
+                return;
+            }
+
+            // Get product details from store
+            const { responseCode, results } = await InAppPurchases.getProductsAsync([
+                selectedPack.product_id
+            ]);
+            // const { responseCode, results } = await InAppPurchases.getProductsAsync(['influencer_pack']);
+            console.log("IAP responseCode:", responseCode);
+            console.log("IAP products:", results);
+            console.log('4. Response Code:', responseCode);
+    console.log('5. Products Found:', results?.length);
+    console.log('6. Product Details:', JSON.stringify(results, null, 2));
+
+            if (responseCode === InAppPurchases.IAPResponseCode.OK && results && results.length > 0) {
+                const product = results[0];
+
+                // Show confirmation
+                Alert.alert(
+                    "Confirm Purchase",
+                    `${product.title}\n${product.price}\n\n${selectedPack.coins} COINS + ${selectedPack.giveaway} GIVEAWAY`,
+                    [
+                        {
+                            text: "Cancel",
+                            style: "cancel",
+                            onPress: () => setPurchasing(false)
+                        },
+                        {
+                            text: "Buy",
+                            onPress: async () => {
+                                try {
+                                    // Initiate purchase
+                                    await InAppPurchases.purchaseItemAsync(selectedPack.product_id);
+                                    // Purchase listener will handle the rest
+                                } catch (error: any) {
+                                    console.error("Purchase error:", error);
+                                    Alert.alert("❌ Error", "Purchase failed. Please try again.");
+                                    setPurchasing(false);
+                                }
+                            }
+                        }
+                    ]
+                );
             } else {
-                Alert.alert("⚠️ Purchase Failed", response.data?.message || "Something went wrong.");
+                Alert.alert("❌ Error", "Product not found in store. Please try again.");
+                setPurchasing(false);
             }
         } catch (error: any) {
             console.error("❌ Purchase error:", error);
-
-            if (error.code === "ECONNABORTED" || error.name === "AbortError") {
-                Alert.alert("⏱️ Timeout", "Purchase request timed out. Please try again.");
-            } else if (error.response) {
-                const message = error.response.data?.message || `Server error: ${error.response.status}`;
-                Alert.alert("❌ Server Error", message);
-            } else if (error.request) {
-                Alert.alert("🌐 Network Error", "Please check your internet connection and try again.");
-            } else {
-                Alert.alert("❌ Error", "Purchase request failed. Please try again.");
-            }
-        } finally {
+            Alert.alert("❌ Error", "Purchase request failed. Please try again.");
             setPurchasing(false);
         }
     };
@@ -185,9 +286,9 @@ export default function Package() {
     const handleBackHome = useCallback(() => {
         router.replace("/");
     }, [router]);
+
     const renderPackageItem = useCallback(
         ({ item, index }: { item: PackageItem; index: number }) => {
-
             let staticLabel = "";
             let staticColor = "";
 
@@ -220,7 +321,7 @@ export default function Package() {
 
                     <View style={styles.cardContent}>
                         <Image
-                            source={{ uri: item.pkg_image_url, cache: "force-cache" }}
+                            source={{ uri: item.pkg_image_url }}
                             style={styles.image}
                             defaultSource={require("../assets/images/place-holder.png")}
                             onError={(error) => console.log("Image load error:", error)}
@@ -306,15 +407,16 @@ export default function Package() {
                             windowSize={10}
                         />
                     )}
+
                     <View style={styles.adContainer}>
-                                  <BannerAd
-                                    unitId={TestIds.BANNER}
-                                    size={BannerAdSize.BANNER}
-                                    requestOptions={{
-                                      requestNonPersonalizedAdsOnly: true,
-                                    }}
-                                  />
-                                </View> 
+                        <BannerAd
+                            unitId={TestIds.BANNER}
+                            size={BannerAdSize.BANNER}
+                            requestOptions={{
+                                requestNonPersonalizedAdsOnly: true,
+                            }}
+                        />
+                    </View>
 
                     <TouchableOpacity
                         style={[styles.button, (!selected || purchasing) && styles.buttonDisabled]}
@@ -345,11 +447,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
     },
     adContainer: {
-    alignItems: 'center',        // Horizontal center
-    justifyContent: 'center',    // Vertical center
-    width: '100%',
-    paddingVertical: 10,
-  },
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        paddingVertical: 10,
+    },
     centered: {
         justifyContent: "center",
         alignItems: "center",
@@ -368,20 +470,17 @@ const styles = StyleSheet.create({
         flexDirection: "column",
         alignItems: "center",
     },
-
     iconWrapper: {
         backgroundColor: "#ffff",
         padding: 7,
         borderRadius: 12,
         marginBottom: 4,
     },
-
     homeText: {
         fontSize: 15,
         fontWeight: "bold",
         color: "#65017A",
     },
-
     header: {
         alignItems: "center",
         marginBottom: 20,

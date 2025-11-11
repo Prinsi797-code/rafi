@@ -4,8 +4,10 @@ import { useRouter } from "expo-router";
 import React, { JSX, memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+    Alert,
     Image,
     ImageBackground,
+    Linking,
     Modal,
     Pressable,
     ScrollView,
@@ -26,7 +28,10 @@ type RowProps = {
 };
 
 const Row = memo(({ image, label, onPress }: RowProps): JSX.Element => (
-    <Pressable onPress={onPress} style={styles.row}>
+    <Pressable onPress={onPress} style={({ pressed }) => [
+        styles.row,
+        { opacity: pressed ? 0.6 : 1 } // smooth tap feedback
+    ]}>
         <View style={styles.rowLeft}>
             <Image source={image} style={styles.rowImage} />
             <Text style={styles.rowLabel}>{label}</Text>
@@ -34,6 +39,7 @@ const Row = memo(({ image, label, onPress }: RowProps): JSX.Element => (
         <Ionicons name="chevron-forward" size={18} />
     </Pressable>
 ));
+
 
 export default function Support(): JSX.Element {
     const [showGiveaway, setShowGiveaway] = useState(false);
@@ -64,12 +70,20 @@ export default function Support(): JSX.Element {
                         </TouchableOpacity>
 
                         <Text style={styles.sectionTitle}>{t("support")}</Text>
-                        <Row
+                       <Row
                             image={require("../assets/images/howto.png")}
                             label={t("how_to_giveaway")}
-                            onPress={() => setShowGiveaway(true)}
+                            onPress={() => router.push("/howToGiveaway")}
                         />
-                        <Row image={require("../assets/images/help.png")} label={t("help")} />
+                        <Row
+                            image={require("../assets/images/help.png")}
+                            label={t("help")}
+                            onPress={() =>
+                                Linking.openURL(
+                                    "mailto:tempocodee@gmail.com?subject=Comment%20Picker%20Feedback"
+                                )
+                            }
+                        />
                         <Row image={require("../assets/images/rateus.png")} label={t("rate_us")} />
                         <Row image={require("../assets/images/shareus.png")} label={t("share_app")} />
 
@@ -96,25 +110,46 @@ export default function Support(): JSX.Element {
                         />
 
                         <Text style={styles.sectionTitle}>{t("terms_conditions")}</Text>
+
                         <Row
                             image={require("../assets/images/privacy.png")}
                             label={t("privacy_policy")}
+                            onPress={async () => {
+                                const url = "https://sites.google.com/view/comment-pick/home";
+                                const supported = await Linking.canOpenURL(url);
+                                if (supported) {
+                                    await Linking.openURL(url);
+                                } else {
+                                    Alert.alert("Cannot open this URL:", url);
+                                }
+                            }}
                         />
+
                         <Row
                             image={require("../assets/images/termandcondition.png")}
                             label={t("terms_conditions")}
+                            onPress={async () => {
+                                const url = "https://sites.google.com/view/comment-pick/home";
+                                const supported = await Linking.canOpenURL(url);
+                                if (supported) {
+                                    await Linking.openURL(url);
+                                } else {
+                                    Alert.alert("Cannot open this URL:", url);
+                                }
+                            }}
                         />
+
                     </View>
                 </ScrollView>
                 <View style={styles.adContainer}>
-  <BannerAd
-    unitId={TestIds.BANNER}
-    size={BannerAdSize.BANNER}
-    requestOptions={{
-      requestNonPersonalizedAdsOnly: true,
-    }}
-  />
-</View> 
+                    <BannerAd
+                        unitId={TestIds.BANNER}
+                        size={BannerAdSize.BANNER}
+                        requestOptions={{
+                            requestNonPersonalizedAdsOnly: true,
+                        }}
+                    />
+                </View>
 
 
             </GradientScreen>
@@ -183,11 +218,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     adContainer: {
-    alignItems: 'center',        // Horizontal center
-    justifyContent: 'center',    // Vertical center
-    width: '100%',
-    paddingVertical: 10,
-  },
+        alignItems: 'center',        // Horizontal center
+        justifyContent: 'center',    // Vertical center
+        width: '100%',
+        paddingVertical: 10,
+    },
     container: {
         width: "100%",
         maxWidth: 600,
