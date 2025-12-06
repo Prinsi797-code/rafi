@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import * as Application from "expo-application";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -59,6 +59,9 @@ export default function GiveawayRules() {
 
     const [isRecording, setIsRecording] = useState(false);
     const [screenRecordEnabled, setScreenRecordEnabled] = useState(false);
+    const [thumbError, setThumbError] = useState(false);
+    const [imgError, setImgError] = useState(false);
+
 
     const router = useRouter();
 
@@ -68,6 +71,21 @@ export default function GiveawayRules() {
         { label: "3", value: "3" },
         { label: "4", value: "4" },
         { label: "5", value: "5" },
+        { label: "6", value: "6" },
+        { label: "7", value: "7" },
+        { label: "8", value: "8" },
+        { label: "9", value: "9" },
+        { label: "10", value: "10" },
+        { label: "11", value: "11" },
+        { label: "12", value: "12" },
+        { label: "13", value: "13" },
+        { label: "14", value: "14" },
+        { label: "15", value: "15" },
+        { label: "16", value: "16" },
+        { label: "17", value: "17" },
+        { label: "18", value: "18" },
+        { label: "19", value: "19" },
+        { label: "20", value: "20" },
     ];
 
     const altWinnerItems = [
@@ -76,6 +94,21 @@ export default function GiveawayRules() {
         { label: "3", value: "3" },
         { label: "4", value: "4" },
         { label: "5", value: "5" },
+        { label: "6", value: "6" },
+        { label: "7", value: "7" },
+        { label: "8", value: "8" },
+        { label: "9", value: "9" },
+        { label: "10", value: "10" },
+        { label: "11", value: "11" },
+        { label: "12", value: "12" },
+        { label: "13", value: "13" },
+        { label: "14", value: "14" },
+        { label: "15", value: "15" },
+        { label: "16", value: "16" },
+        { label: "17", value: "17" },
+        { label: "18", value: "18" },
+        { label: "19", value: "19" },
+        { label: "20", value: "20" },
     ];
 
 
@@ -99,12 +132,14 @@ export default function GiveawayRules() {
             Alert.alert("Validation Error", "Please select at least 1 winner.");
             return;
         }
+
         try {
             setStarting(true);
             if (isRecording) {
                 setIsRecording(false);
                 setScreenRecordEnabled(false);
             }
+
             let deviceId = "unknown-device";
             try {
                 deviceId = await getDeviceIdSafe();
@@ -112,7 +147,7 @@ export default function GiveawayRules() {
                 console.warn("Device ID fetch failed:", e);
             }
 
-            const res = await axios.post("https://instagram.adinsignia.com/winner.php", {
+            const res = await axios.post("https://newinsta.adinsignia.com/winner.php", {
                 postUrl: data.post_url,
                 maxComments: 100,
                 winnerCount: winner,
@@ -122,6 +157,13 @@ export default function GiveawayRules() {
                 device_id: deviceId,
                 run: 1,
             });
+
+            // ✅ Check for error response from API
+            if (res.data?.error === true) {
+                Alert.alert("Request Failed", res.data?.message || "Something went wrong!");
+                setStarting(false);
+                return;
+            }
 
             if (res.data?.success === "success") {
                 // ✅ Save winner and post data
@@ -155,25 +197,66 @@ export default function GiveawayRules() {
                 } as any);
             } else {
                 const errorMessage = res.data?.message || "Unexpected error from API";
-                alert("Error: " + errorMessage);
+                Alert.alert("Request Failed", errorMessage);
                 setStarting(false);
             }
-        } catch (err) {
-            console.error("API Error:", err);
-            alert("Something went wrong! Check console for details.");
+        } catch (err: any) {
+            // console.error("API Error:", err);
+            if (err.response) {
+                // Server responded with error status (404, 500, etc.)
+                const errorData = err.response.data;
+
+                if (errorData?.error === true && errorData?.message) {
+                    // API returned error object with message
+                    Alert.alert("Request Failed", errorData.message);
+                } else if (err.response.status === 404) {
+                    Alert.alert("Request Failed", "Service not found. Please try again later.");
+                } else {
+                    Alert.alert("Request Failed", errorData?.message || "An error occurred. Please try again.");
+                }
+            } else if (err.request) {
+                // Request was made but no response received (network issue)
+                Alert.alert("Network Error", "Unable to connect. Please check your internet connection.");
+            } else {
+                // Something else happened
+                Alert.alert("Error", "Something went wrong! Please try again.");
+            }
+
             setStarting(false);
         }
     };
 
+    const handleBackHome = useCallback(() => {
+        router.replace("/");
+    }, [router]);
+
     return (
         <GradientScreen>
-            <View style={styles.customHeader}>
+            {/* <View style={styles.customHeader}>
                 <TouchableOpacity onPress={() => router.push("/")} style={{ alignItems: "center" }}>
-                    <Icon name="home" size={20} color="#333" />
+                    <Icon name="home" size={20} color="#fafafaff" />
                     <Text style={{ fontSize: 10 }}>Home</Text>
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Giveaway Rules</Text>
 
+                {isRecording && (
+                    <View style={styles.recordingIndicator}>
+                        <View style={styles.recordingDot} />
+                        <Text style={styles.recordingText}>REC</Text>
+                    </View>
+                )}
+            </View> */}
+
+            <View style={styles.customHeader}>
+                <TouchableOpacity
+                    onPress={handleBackHome}
+                    style={styles.homeButton}
+                    activeOpacity={0.7}
+                >
+                    <View style={styles.iconWrapper}>
+                        <Icon name="home" size={20} color="#65017A" />
+                    </View>
+                </TouchableOpacity>
                 {isRecording && (
                     <View style={styles.recordingIndicator}>
                         <View style={styles.recordingDot} />
@@ -194,12 +277,23 @@ export default function GiveawayRules() {
                             <ActivityIndicator size="large" color="#8B3A99" />
                         </View>
                     )}
-                    <Image
-                        source={{ uri: data.media[0].thumbnail }}
-                        style={styles.image}
-                        onLoadStart={() => setLoading(true)}
-                        onLoadEnd={() => setLoading(false)}
-                    />
+                    <Image source={{ uri: data.media[0].thumbnail }} style={styles.image} onLoadStart={() => setLoading(true)} onLoadEnd={() => setLoading(false)} />
+                    
+                    {/* <Image
+    source={
+        imgError
+            ? require("../assets/images/thubmail.jpg")
+            : !thumbError && data?.media?.[0]?.thumbnail
+            ? { uri: data.media[0].thumbnail }
+            : { uri: data.media[0].url }
+    }
+    style={styles.image}
+    onError={() => {
+        if (!thumbError) setThumbError(true);
+        else setImgError(true);
+    }}
+/> */}
+
                     <View style={styles.overlay}>
                         <Text style={styles.username}>@{data.posted_by.username}</Text>
                         <Text style={styles.caption} numberOfLines={2}>
@@ -210,113 +304,135 @@ export default function GiveawayRules() {
 
                 <View style={{ marginTop: 20 }}>
                     {/* Screen Record */}
-                    <View style={styles.optionRow}>
-                        <View style={styles.recordLabelContainer}>
+                    {/* <View style={styles.optionRow}> */}
+                    {/* <View style={styles.recordLabelContainer}>
                             <Text style={styles.optionLabel}>Screen Record</Text>
                             {isRecording && <Text style={styles.recordingStatus}>Recording...</Text>}
-                        </View>
+                        </View> */}
 
-                        <Switch
+                    {/* <Switch
                             value={screenRecordEnabled}
                             onValueChange={handleScreenRecordToggle}
                             trackColor={{ false: "#767577", true: "#8B3A99" }}
                             thumbColor={screenRecordEnabled ? "#f4f3f4" : "#f4f3f4"}
-                        />
-                    </View>
+                        /> */}
+                    {/* </View> */}
 
                     {/* Giveaway Title */}
-                    <Text style={styles.label}>Giveaway Title</Text>
-                    <TextInput placeholder="Holiday Giveaway" style={styles.input} placeholderTextColor="#888" value={giveawayTitle}
-                        onChangeText={setGiveawayTitle}
-                    />
+                    <View style={styles.titlegiveaway}>
+                        <Text style={styles.label}>Giveaway Title</Text>
+                        <TextInput placeholder="Holiday Giveaway" style={styles.input} placeholderTextColor="#ffffffff" value={giveawayTitle}
+                            onChangeText={setGiveawayTitle}
+                        />
+                    </View>
+                    <View style={styles.titlegiveaway}>
+                        <View style={styles.row}>
+                            {/* LEFT - Winners */}
+                            <View style={styles.column}>
+                                <Text style={styles.label}>Winners</Text>
+                                <DropDownPicker
+                                    open={openWinner}
+                                    value={winner}
+                                    items={winnerItems}
+                                    setOpen={(val) => {
+                                        setOpenWinner(val);
+                                        if (val) setOpenAltWinner(false); // close other dropdown
+                                    }}
+                                    setValue={setWinner}
+                                    placeholder="Select Winner"
+                                    style={styles.dropdown}
+                                    dropDownContainerStyle={styles.dropdownList}
+                                    textStyle={styles.dropdownText}
+                                    listMode="SCROLLVIEW"
+                                    arrowIconStyle={{ tintColor: "#fff" }}
+                                    tickIconStyle={{ tintColor: "#fff" }}
+                                />
+                            </View>
 
-                <View style={styles.row}>
-                        {/* LEFT - Winners */}
-                        <View style={styles.column}>
-                            <Text style={styles.label}>Winners</Text>
-                            <DropDownPicker
-                                open={openWinner}
-                                value={winner}
-                                items={winnerItems}
-                                setOpen={(val) => {
-                                    setOpenWinner(val);
-                                    if (val) setOpenAltWinner(false); // close other dropdown
-                                }}
-                                setValue={setWinner}
-                                placeholder="Select Winner"
-                                style={styles.dropdown}
-                                dropDownContainerStyle={styles.dropdownList}
-                                textStyle={styles.dropdownText}
-                                listMode="SCROLLVIEW" 
-                            />
-                        </View>
-
-                        {/* RIGHT - Alternate Winners */}
-                        <View style={styles.column}>
-                            <Text style={styles.label}>Alternate Winners</Text>
-                            <DropDownPicker
-                                open={openAltWinner}
-                                value={altWinner}
-                                items={altWinnerItems}
-                                setOpen={(val) => {
-                                    setOpenAltWinner(val);
-                                    if (val) setOpenWinner(false); // close other dropdown
-                                }}
-                                setValue={setAltWinner}
-                                placeholder="Select Alternate"
-                                style={styles.dropdown}
-                                dropDownContainerStyle={styles.dropdownList}
-                                textStyle={styles.dropdownText}
-                                listMode="SCROLLVIEW"
-                            />
+                            {/* RIGHT - Alternate Winners */}
+                            <View style={styles.column}>
+                                <Text style={styles.label}>Alternate Winners</Text>
+                                <DropDownPicker
+                                    open={openAltWinner}
+                                    value={altWinner}
+                                    items={altWinnerItems}
+                                    setOpen={(val) => {
+                                        setOpenAltWinner(val);
+                                        if (val) setOpenWinner(false); // close other dropdown
+                                    }}
+                                    setValue={setAltWinner}
+                                    placeholder="Select Alternate"
+                                    style={styles.dropdown}
+                                    dropDownContainerStyle={styles.dropdownList}
+                                    textStyle={styles.dropdownText}
+                                    listMode="SCROLLVIEW"
+                                    arrowIconStyle={{ tintColor: "#fff" }}
+                                    tickIconStyle={{ tintColor: "#fff" }}
+                                />
+                            </View>
                         </View>
                     </View>
 
                     <View style={styles.optionRow}>
-                        <Text style={styles.optionLabel}>Participation</Text>
-                        <Switch value={participation} onValueChange={(val) => setParticipation(val)} />
+                        <Text style={styles.optionLabel}>Participation</Text><Text style={styles.smalltext}>Eliminate similar IDs</Text>
+                        <Switch value={participation} onValueChange={(val) => setParticipation(val)} trackColor={{ false: "#777", true: "#420aa2ff" }} ios_backgroundColor="#858080ff" />
                     </View>
 
-                    <Text style={styles.label}>Keyword (Optional)</Text>
-                    <TextInput placeholder="Add keyword" style={styles.input} value={keyword} onChangeText={setKeyword} placeholderTextColor="#888" />
+                    <View style={styles.titlegiveaway}>
+                        <Text style={styles.label}>Keyword (Optional)</Text>
+                        <TextInput placeholder="Add keyword" style={styles.input} value={keyword} onChangeText={setKeyword} placeholderTextColor="#f0f0f0ff" />
+                    </View>
 
-                    <Text style={styles.label}>Countdown</Text>
-                    <View style={styles.counterBox}>
-                        <TouchableOpacity
-                            style={styles.counterButton}
-                            onPress={() => setCountdown(Math.max(3, countdown - 2))}
-                        >
-                            <Text style={styles.counterText}>-</Text>
-                        </TouchableOpacity>
+                    <View style={styles.titlegiveaway}>
+                        <Text style={styles.label}>Countdown</Text>
+                        <View style={styles.counterBox}>
+                            <TouchableOpacity
+                                style={styles.counterButton}
+                                onPress={() => setCountdown(Math.max(3, countdown - 2))}
+                            >
+                                <Text style={styles.counterText}>-</Text>
+                            </TouchableOpacity>
 
-                        <TextInput
-                            style={styles.counterInput}
-                            keyboardType="numeric"
-                            value={countdown.toString()}
-                            onChangeText={(val) => {
-                                let num = parseInt(val) || 3;
-                                if (num < 3) num = 3;
-                                setCountdown(num);
-                            }}
-                        />
+                            <TextInput
+                                style={styles.counterInput}
+                                keyboardType="numeric"
+                                value={countdown.toString()}
+                                onChangeText={(val) => {
+                                    let num = parseInt(val) || 3;
+                                    if (num < 3) num = 3;
+                                    setCountdown(num);
+                                }}
+                            />
 
-                        <TouchableOpacity
-                            style={styles.counterButton}
-                            onPress={() => setCountdown(countdown + 2)}
-                        >
-                            <Text style={styles.counterText}>+</Text>
-                        </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.counterButton}
+                                onPress={() => setCountdown(countdown + 2)}
+                            >
+                                <Text style={styles.counterText}>+</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
 
                 <TouchableOpacity
-                    style={styles.button}
+                    style={[
+                        styles.button,
+                        starting && styles.buttonDisabled  // disabled state styling
+                    ]}
                     onPress={startGiveawayHandler}
                     disabled={starting}
+                    activeOpacity={starting ? 1 : 0.7}
                 >
-                    <Text style={styles.buttonText}>
-                        START GIVEAWAY
-                    </Text>
+                    {starting ? (
+                        <View style={styles.buttonContent}>
+                            <ActivityIndicator size="small" color="#fff" />
+                            <Text style={[styles.buttonText, { marginLeft: 10 }]}>
+                                STARTING...
+                            </Text>
+                        </View>
+                    ) : (
+                        <Text style={styles.buttonText}>START GIVEAWAY</Text>
+                    )}
                 </TouchableOpacity>
             </ScrollView>
         </GradientScreen>
@@ -328,38 +444,74 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         overflow: "hidden",
     },
+    iconWrapper: {
+        backgroundColor: "#ffff",
+        padding: 7,
+        borderRadius: 12,
+        marginBottom: 4,
+    },
     image: {
         width: "100%",
         height: 300,
     },
-        row: {
+    row: {
         flexDirection: "row",
         justifyContent: "space-between",
-        marginTop: 10,
+        // marginTop: 10,
         gap: 10, // works in RN 0.71+
     },
     column: {
         flex: 1,
     },
+
     label: {
-        fontWeight: "600",
-        fontSize: 15,
-        color: "#333",
+        fontWeight: "800",
+        // marginTop: 16,
         marginBottom: 6,
-        marginTop: 6,
+        fontSize: 16,
+        color: "#ffffffff",
+
     },
-    dropdown: {
-        backgroundColor: "#fff",
+    buttonDisabled: {
+        backgroundColor: "#A67DB1",  // lighter shade when disabled
+        opacity: 0.8,
+    },
+
+    buttonContent: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    titlegiveaway: {
+        backgroundColor: "#ffffff34",
+        padding: 10,
         borderRadius: 10,
-        borderColor: "#ddd",
+        marginTop: 10,
+    },
+    smalltext:{
+        color: "#c3c3c3b1",
+        marginRight: 35,
+    },
+
+    dropdown: {
+        backgroundColor: "#ffffff34",
+        borderRadius: 10,
+        borderColor: "#ffffff34",
         minHeight: 50,
     },
     dropdownList: {
-        borderColor: "#ddd",
+        borderColor: "#ffffff34",
+        backgroundColor: "#d85aebff",
+
     },
     dropdownText: {
         fontSize: 15,
-        color: "#000",
+        color: "#ffffffff",
+    },
+    homeButton: {
+        flexDirection: "column",
+        alignItems: "center",
     },
     recordingIndicator: {
         flexDirection: 'row',
@@ -434,7 +586,7 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     optionRow: {
-        backgroundColor: "#fff",
+        backgroundColor: "#ffffff34",
         borderRadius: 10,
         padding: 12,
         marginTop: 12,
@@ -443,26 +595,19 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     optionLabel: {
-        fontWeight: "600",
-        fontSize: 15,
-        color: "#333",
-    },
-    label: {
-        fontWeight: "600",
-        marginTop: 16,
-        marginBottom: 6,
-        fontSize: 15,
-        color: "#333",
+        fontWeight: "800",
+        fontSize: 16,
+        color: "#ffffffff",
     },
     input: {
-        backgroundColor: "#fff",
+        backgroundColor: "#ffffff34",
         borderRadius: 10,
-        color: "#000",
+        color: "#fff",
         padding: 12,
         fontSize: 14,
     },
     dropdownContainer: {
-        backgroundColor: "#fff",
+        backgroundColor: "#ffffff34",
         borderRadius: 10,
         marginBottom: 10,
     },
@@ -471,7 +616,7 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     button: {
-        backgroundColor: "#8B3A99",
+        backgroundColor: "#5a009e",
         padding: 16,
         borderRadius: 12,
         alignItems: "center",
@@ -485,26 +630,27 @@ const styles = StyleSheet.create({
     counterBox: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#fff",
+        backgroundColor: "#ffffff34",
         borderRadius: 10,
         marginTop: 8,
         overflow: "hidden",
     },
     counterButton: {
-        backgroundColor: "#eee",
+        backgroundColor: "#ffffff34",
         paddingHorizontal: 15,
         paddingVertical: 10,
     },
     counterText: {
         fontSize: 20,
         fontWeight: "bold",
-        color: "#333",
+        color: "#fff",
     },
     counterInput: {
         flex: 1,
         textAlign: "center",
         fontSize: 16,
         paddingVertical: 10,
+        color: "#fff",
     },
 
 });

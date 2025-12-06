@@ -183,7 +183,6 @@ export default function PickWinner() {
 
             // Highlight and zoom animation
             setHighlightedUsername(username);
-
             // Zoom in animation
             Animated.sequence([
                 Animated.timing(zoomAnim, {
@@ -490,26 +489,24 @@ export default function PickWinner() {
                         )}
                     </ScrollView>
                     {showPostInfo && (
-    <TouchableOpacity
-        style={styles.endButton}
-        onPress={() => {
-            router.replace("/"); // Navigate to home
-            setTimeout(() => {
-                // Give a small delay before refreshing
-                if (Platform.OS === "android") {
-                    // For Android
-                    Expo.Updates.reloadAsync?.();
-                } else {
-                    // For iOS or fallback
-                    Updates.reloadAsync?.();
-                }
-            }, 500);
-        }}
-    >
-        <Text style={styles.endButtonText}>End Giveaway</Text>
-    </TouchableOpacity>
-)}
-
+                        <TouchableOpacity
+                            style={styles.endButton}
+                            onPress={() => {
+                                router.replace("/"); // Navigate to home
+                                setTimeout(() => {
+                                    if (Platform.OS === "android") {
+                                        // For Android
+                                        Expo.Updates.reloadAsync?.();
+                                    } else {
+                                        // For iOS or fallback
+                                        Updates.reloadAsync?.();
+                                    }
+                                }, 500);
+                            }}
+                        >
+                            <Text style={styles.endButtonText}>End Giveaway</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
         </GradientScreen>
@@ -538,7 +535,8 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 6,
         maxWidth: 72,
-        textAlign: "center"
+        textAlign: "center",
+        color: "#fff",
     },
     highlighted: {
         backgroundColor: "rgba(255, 215, 0, 0.3)",
@@ -551,7 +549,7 @@ const styles = StyleSheet.create({
     },
     highlightedText: {
         fontWeight: "bold",
-        color: "#8B3A99",
+        color: "#ffffffff",
     },
     doneTitle: {
         fontSize: 25,
@@ -559,12 +557,13 @@ const styles = StyleSheet.create({
         textAlign: "center",
         marginBottom: 25,
         marginTop: 10,
+        color: "#fff",
     },
     postRow: {
         flexDirection: "row",
         alignItems: "flex-start",
         marginBottom: 16,
-        backgroundColor: "#fff",
+        backgroundColor: "#ffffff34",
         borderRadius: 8,
         padding: 8,
     },
@@ -598,18 +597,20 @@ const styles = StyleSheet.create({
     postUser: {
         fontWeight: "bold",
         fontSize: 16,
-        marginBottom: 4
+        marginBottom: 4,
+        color: "#fff",
     },
-    postCaption: { color: "#555" },
+    postCaption: { color: "#ffffffff" },
     sectionTitle: {
         fontSize: 18,
         fontWeight: "bold",
         marginTop: 12,
-        marginBottom: 10
+        marginBottom: 10,
+        color: "#fff",
     },
     winnerContainer: {
         marginBottom: 10,
-        backgroundColor: "#fff",
+        backgroundColor: "#ffffff34",
         borderRadius: 10,
         paddingVertical: 8,
         paddingHorizontal: 10,
@@ -629,10 +630,10 @@ const styles = StyleSheet.create({
         borderRadius: 19,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#E7D7FF",
+        backgroundColor: "#ffffff51",
         marginLeft: 10,
     },
-    rankText: { fontWeight: "bold" },
+    rankText: { fontWeight: "500", color: "#fff" },
     avatarContainer: { marginRight: 10 },
     winnerAvatar: {
         width: 44,
@@ -643,15 +644,16 @@ const styles = StyleSheet.create({
     winnerInfo: { flex: 1 },
     winnerName: {
         fontWeight: "bold",
-        fontSize: 15
+        fontSize: 15,
+        color: "#fff",
     },
     winnerText: {
-        color: "#555",
+        color: "#ffffffff",
         marginTop: 2
     },
     endButton: {
         marginTop: 24,
-        backgroundColor: "#8B3A99",
+        backgroundColor: "#5a009e",
         paddingVertical: 14,
         borderRadius: 10,
         alignItems: "center",

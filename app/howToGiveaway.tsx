@@ -34,7 +34,7 @@ export default function HowToGiveaway() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={26} color="#000" />
+                    <Ionicons name="arrow-back" size={26} color="#fdfdfdff" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t("how_to_giveaway")}</Text>
                 <View style={{ width: 26 }} />
@@ -55,7 +55,7 @@ export default function HowToGiveaway() {
                 <View style={styles.container}>
                     <TouchableOpacity onPress={() => setShowVideo(true)}>
                         <ImageBackground
-                            source={require("../assets/images/thumbanil1.png")}
+                            source={require("../assets/images/thumbanil1.jpeg")}
                             style={styles.demoBox}
                             imageStyle={{ borderRadius: radius.xl }}
                         >
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     container: {
         width: "100%",
         maxWidth: 600,
-        paddingHorizontal: 20,
+        paddingHorizontal: 5,
         // backgroundColor: "#fff",
     },
     header: {
@@ -118,6 +118,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: "900",
+        color: "#fff"
     },
     videoCard: {
         width: "90%",
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     stepBox: {
-        backgroundColor: "white",
+        backgroundColor: "#ffffff34",
         padding: 16,
         borderRadius: radius.xl,
         marginBottom: 10,
@@ -192,8 +193,9 @@ const styles = StyleSheet.create({
     stepTitle: {
         fontWeight: "900",
         marginBottom: 4,
+        color: "#fdfdfdff",
     },
     stepDesc: {
-        color: "#333",
+        color: "#fdfdfdff",
     },
 });

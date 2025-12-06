@@ -98,14 +98,14 @@ export default function History() {
 
                         <View style={styles.statsContainer}>
                             <View style={styles.statItem}>
-                                <Ionicons name="trophy" size={14} color="#8B5CF6" />
+                                <Ionicons name="trophy" size={14} color="#e1d43fff" />
                                 <Text style={styles.statText}>
                                     {winnersCount} winners
                                 </Text>
                             </View>
                             {substitutesCount > 0 && (
                                 <View style={styles.statItem}>
-                                    <Ionicons name="people" size={14} color="#9CA3AF" />
+                                    <Ionicons name="people" size={14} color="#3113c8ff" />
                                     <Text style={styles.statText}>
                                         {substitutesCount} alternates
                                     </Text>
@@ -115,7 +115,7 @@ export default function History() {
                     </View>
 
                     <View style={styles.arrowContainer}>
-                        <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+                        <Ionicons name="chevron-forward" size={20} color="#ffffffff" />
                     </View>
                 </View>
             </TouchableOpacity>
@@ -131,7 +131,7 @@ export default function History() {
                         onPress={() => router.back()}
                         style={styles.backButton}
                     >
-                        <Ionicons name="arrow-back" size={24} color="black" />
+                        <Ionicons name="arrow-back" size={24} color="#fff" />
                     </TouchableOpacity>
                     <Text style={styles.title}>{t("giveaway_history")}</Text>
                     <View style={{ width: 24 }} />
@@ -148,7 +148,7 @@ export default function History() {
                     />
                 ) : (
                     <View style={styles.emptyState}>
-                        <Ionicons name="time-outline" size={60} color="#9CA3AF" />
+                        <Ionicons name="time-outline" size={60} color="#ffffffff" />
                         <Text style={styles.emptyTitle}>No History Yet</Text>
                         <Text style={styles.emptyText}>
                             Your giveaway history will appear here once you start creating giveaways.
@@ -175,19 +175,20 @@ const styles = StyleSheet.create({
     },
     backButton: {
         width: 24,
+        color: "#fff",
     },
     title: {
         fontSize: 25,
         fontWeight: "600",
         textAlign: "center",
         flex: 1,
-        color: "#333",
+        color: "#ffffffff",
     },
     listContainer: {
         paddingBottom: 20,
     },
     card: {
-        backgroundColor: "#fff",
+         backgroundColor: "#ffffff34",
         borderRadius: 16,
         marginHorizontal: 2,
         shadowColor: "#000",
@@ -199,7 +200,7 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         elevation: 4,
         borderWidth: 1,
-        borderColor: "#F1F5F9",
+        borderColor: "#ffffff34",
     },
     cardContent: {
         flexDirection: "row",
@@ -220,12 +221,12 @@ const styles = StyleSheet.create({
     username: {
         fontSize: 16,
         fontWeight: "600",
-        color: "#1F2937",
+        color: "#fdfeffff",
         marginBottom: 4,
     },
     caption: {
         fontSize: 14,
-        color: "#6B7280",
+        color: "#ffffffff",
         lineHeight: 18,
         marginBottom: 8,
     },
@@ -241,7 +242,7 @@ const styles = StyleSheet.create({
     },
     statText: {
         fontSize: 12,
-        color: "#6B7280",
+        color: "#ffffffff",
         fontWeight: "500",
     },
     arrowContainer: {
@@ -256,13 +257,13 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontSize: 20,
         fontWeight: "600",
-        color: "#374151",
+        color: "#ffffffff",
         marginTop: 16,
         marginBottom: 8,
     },
     emptyText: {
         fontSize: 16,
-        color: "#6B7280",
+        color: "#ffffffff",
         textAlign: "center",
         lineHeight: 22,
     },

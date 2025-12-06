@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import GradientScreen from "../components/GradientScreen";
 
 const languages = [
     { code: "en", label: "English", flag: "🇬🇧" },
@@ -38,23 +39,23 @@ export default function ChangeLanguage() {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: "#fce4ec", paddingLeft: "5", paddingRight: "5" }} >
-
+        // <View style={{ flex: 1, backgroundColor: "#fce4ec", paddingLeft: "5", paddingRight: "5" }} >
+<GradientScreen>
             <View
                 style={{
                     flexDirection: "row",
                     alignItems: "center",
-                    paddingVertical: 15,
-                    paddingHorizontal: 5,
-                    marginTop: 50,
+                    paddingVertical: 20,
+                    paddingHorizontal: 20,
+                    // marginTop: 50,
                 }}
             >
                 <TouchableOpacity onPress={() => router.back()} style={{}}>
-                    <Ionicons name="arrow-back" size={24} color="black" />
+                    <Ionicons name="arrow-back" size={26} color="#fff" />
                 </TouchableOpacity>
 
                 <View style={{ flex: 1, alignItems: "center", marginRight: 30 }}>
-                    <Text style={{ fontSize: 25, fontWeight: "bold" }}>
+                    <Text style={{ fontSize: 25, fontWeight: "bold", color: "#fff" }}>
                         {t("change_language")}
                     </Text>
                 </View>
@@ -68,7 +69,7 @@ export default function ChangeLanguage() {
                     renderItem={({ item }) => (
                         <TouchableOpacity
                             style={{
-                                backgroundColor: "white",
+                                backgroundColor: "#ffffff34",
                                 padding: 10,
                                 borderRadius: 10,
                                 flexDirection: "row",
@@ -82,12 +83,12 @@ export default function ChangeLanguage() {
 
                                 <Text style={{ fontSize: 28, marginRight: 12 }}>{item.flag}</Text>
 
-                                <Text style={{ fontSize: 18, fontWeight: "bold", color: "#8B3A99" }}>
+                                <Text style={{ fontSize: 18, fontWeight: "bold", color: "#fff" }}>
                                     {item.label}
                                 </Text>
                             </View>
                             {selected === item.code && (
-                                <Ionicons name="checkmark" size={25} color="#8B3A99" />
+                                <Ionicons name="checkmark" size={25} color="#fff" />
                             )}
                         </TouchableOpacity>
                     )}
@@ -95,7 +96,7 @@ export default function ChangeLanguage() {
 
                 <TouchableOpacity
                     style={{
-                        backgroundColor: "#8B3A99",
+                        backgroundColor: "#5a009e",
                         padding: 15,
                         borderRadius: 10,
                         alignItems: "center",
@@ -107,6 +108,7 @@ export default function ChangeLanguage() {
                     <Text style={{ color: "white", fontSize: 16 }}>{t("done")}</Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        {/* </View> */}
+        </GradientScreen>
     );
 }

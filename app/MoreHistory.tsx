@@ -74,16 +74,14 @@ export default function MoreHistory() {
 
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={24} color="black" />
+                        <Ionicons name="arrow-back" size={24} color="#fff" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>{t("giveaway_details")}</Text>
                     <View style={{ width: 24 }} />
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false}>
-
                     <View style={styles.mainCard}>
-
                         <View style={styles.postSection}>
                             <Image
                                 source={safeImage(winnerData.postData?.media?.[0]?.thumbnail)}
@@ -126,7 +124,7 @@ export default function MoreHistory() {
                                                     <Ionicons
                                                         name="logo-instagram"
                                                         size={16}
-                                                        color="#E4405F"
+                                                        color="#fcaf45"
                                                         style={styles.instagramIcon}
                                                     />
                                                 </View>
@@ -165,7 +163,7 @@ export default function MoreHistory() {
                                                         <Ionicons
                                                             name="logo-instagram"
                                                             size={16}
-                                                            color="#E4405F"
+                                                            color="#fcaf45"
                                                             style={styles.instagramIcon}
                                                         />
                                                     </View>
@@ -201,10 +199,10 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 25,
         fontWeight: 'bold',
-        color: 'black',
+        color: '#fff',
     },
     mainCard: {
-        backgroundColor: 'white',
+        backgroundColor: "#ffffff34",
         borderRadius: 16,
         padding: 16,
         marginBottom: 20,
@@ -233,13 +231,13 @@ const styles = StyleSheet.create({
     },
     liveTag: {
         fontSize: 14,
-        color: '#333',
+        color: '#ffffffff',
         lineHeight: 20,
     },
     participantsBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#8B3A99',
+        backgroundColor: '#670878ff',
         paddingHorizontal: 8,
         paddingVertical: 5,
         borderRadius: 6,
@@ -259,15 +257,15 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 12,
-        color: '#333',
+        color: '#ffffffff',
     },
     winnerCard: {
-        backgroundColor: '#f8f9fa',
+        backgroundColor: "#ffffff34",
         borderRadius: 12,
         padding: 12,
         marginBottom: 8,
         borderWidth: 1,
-        borderColor: '#e9ecef',
+        borderColor: '#ffffff34',
     },
     winnerLeft: {
         flexDirection: 'row',
@@ -290,7 +288,7 @@ const styles = StyleSheet.create({
     winnerUsername: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: '#ffffffff',
         marginRight: 6,
     },
     instagramIcon: {
@@ -298,12 +296,12 @@ const styles = StyleSheet.create({
     },
     winnerComment: {
         fontSize: 14,
-        color: '#666',
+        color: '#ffffffff',
         fontStyle: 'italic',
     },
     noWinnersText: {
         textAlign: 'center',
-        color: '#666',
+        color: '#ffffffff',
         fontStyle: 'italic',
         marginVertical: 20,
     },

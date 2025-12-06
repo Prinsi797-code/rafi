@@ -2,6 +2,7 @@ import { Image } from "expo-image"; // expo-image for better GIF handling
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import GradientScreen from "../components/GradientScreen";
 
 function safeJSONParse<T>(value: string | undefined, fallback: T): T {
     try {
@@ -66,6 +67,7 @@ const GiveawayStart = () => {
     }, []);
 
     return (
+        <GradientScreen>
         <View style={styles.container}>
             {!countdownComplete && (
                 <View style={styles.centerContent}>
@@ -90,6 +92,7 @@ const GiveawayStart = () => {
                 </View>
             )}
         </View>
+        </GradientScreen>
     );
 };
 
@@ -98,7 +101,7 @@ export default GiveawayStart;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff",
+        // backgroundColor: "#fff",
         justifyContent: "center",
         alignItems: "center",
     },
@@ -121,16 +124,17 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     giftEmoji: {
-        fontSize: 50,
+        fontSize: 60,
     },
     countdownText: {
         fontSize: 80,
         fontWeight: "bold",
-        color: "#560a62ff",
+        color: "#ffffffff",
     },
     subText: {
-        fontSize: 20,
+        fontSize: 25,
         marginBottom: 5,
-        color: "#8b3a99",
+        color: "#f1f1f1ff",
+        fontWeight: "bold",
     },
 });

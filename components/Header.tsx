@@ -26,7 +26,7 @@ export default function Header({
             }}
         >
             {isSupportPage ? (
-                <Text style={{ fontSize: 18, fontWeight: "bold", color: "#333" }}>
+                <Text style={{ fontSize: 18, fontWeight: "bold", color: "#fff" }}>
                     {t("support")}
                 </Text>
             ) : showBack ? (
@@ -34,7 +34,7 @@ export default function Header({
                     style={{ alignItems: "center" }}
                     onPress={() => router.push("/")}
                 >
-                    <Ionicons name="arrow-back" size={28} color="#333" />
+                    <Ionicons name="arrow-back" size={28} color="#fffefeff" />
                     <Text style={{ fontSize: 10 }}>{t("back")}</Text>
                 </TouchableOpacity>
             ) : (
@@ -42,8 +42,8 @@ export default function Header({
                     style={{ alignItems: "center" }}
                     onPress={() => router.push("/support")}
                 >
-                    <Ionicons name="menu" size={28} color="#333" />
-                    <Text style={{ fontSize: 10 }}>{t("menu")}</Text>
+                    <Ionicons name="menu" size={28} color="#ffffffff" />
+                    <Text style={{ fontSize: 10, color: "#ffff" }}>{t("menu")}</Text>
                 </TouchableOpacity>
             )}
 
@@ -60,7 +60,7 @@ export default function Header({
                         style={{
                             fontSize: 16,
                             fontWeight: "bold",
-                            color: "#333",
+                            color: "#fffefeff",
                         }}
                     >
                         {/* {t("home")} */}
@@ -89,9 +89,9 @@ export default function Header({
                     <MaterialCommunityIcons
                         name="gift-outline"
                         size={22}
-                        color="#333"
+                        color="#fffdfdff"
                     />
-                    <Text style={{ fontSize: 12, fontWeight: "bold" }}>
+                    <Text style={{ fontSize: 12, fontWeight: "bold", color: "#fff" }}>
                         {coins ?? 0} {t("coins")}
                     </Text>
                 </TouchableOpacity>

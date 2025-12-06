@@ -1,6 +1,7 @@
 import GradientScreen from "@/components/GradientScreen";
 import Header from "@/components/Header";
 import PrimaryButton from "@/components/PrimaryButton";
+import { fetchAppConfig } from "@/utils/firebaseConfig"; // UPDATED ✔
 import { colors } from "@/utils/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -8,8 +9,6 @@ import axios from "axios";
 import * as Application from "expo-application";
 import * as Clipboard from "expo-clipboard";
 import React, { JSX, useCallback, useEffect, useRef, useState } from "react";
-import { BannerAd, BannerAdSize, InterstitialAd, TestIds } from 'react-native-google-mobile-ads';
-
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -24,8 +23,11 @@ import {
   TextInput,
   View
 } from "react-native";
+// import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
+import { BannerAdSize, GAMBannerAd } from 'react-native-google-mobile-ads'; // ✅ GAMBannerAd
 
 const { width: screenWidth } = Dimensions.get("window");
+
 const radius = {
   sm: 4,
   md: 8,
@@ -33,6 +35,7 @@ const radius = {
   xl: 20,
   pill: 999,
 };
+
 async function getDeviceIdSafe(): Promise<string> {
   try {
     if (Platform.OS === "android") {
@@ -46,28 +49,52 @@ async function getDeviceIdSafe(): Promise<string> {
     } else {
       return `device_${Date.now()}`;
     }
-  } catch (error) { 
+  } catch (error) {
     console.warn("Device ID fetch failed:", error);
     return `fallback_${Date.now()}_${Math.random()
       .toString(36)
       .substr(2, 9)}`;
   }
 }
+
 export default function Giveaway(): JSX.Element {
   const [link, setLink] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [coins, setCoins] = useState<number>(0);
   const [token, setToken] = useState<string | null>(null);
+
+  // Firebase Remote Config states
+  const [bannerId, setBannerId] = useState("");
+  const [showAds, setShowAds] = useState(false);
+  const [adsLoaded, setAdsLoaded] = useState(false);
+
   const navigation = useNavigation();
-  const interstitial = InterstitialAd.createForAdRequest('ca-app-pub-3940256099942544/1033173712');
-
   const { t } = useTranslation();
-
   const isMounted = useRef(true);
+
   useEffect(() => {
     return () => {
       isMounted.current = false;
     };
+  }, []);
+
+  useEffect(() => {
+    const loadConfig = async () => {
+      const config = await fetchAppConfig();
+
+      if (config) {
+        setShowAds(config.picker_ads === true);
+        setBannerId(
+          Platform.OS === "ios"
+            ? config.ios_banner_id
+            : config.android_banner_id
+        );
+      }
+
+      setAdsLoaded(true);
+    };
+
+    loadConfig();
   }, []);
 
   useFocusEffect(
@@ -113,7 +140,7 @@ export default function Giveaway(): JSX.Element {
       setToken(parsed.data.bearer_token);
 
       const res = await axios.post(
-        "https://instagram.adinsignia.com/new-instagram.php",
+        "https://newinsta.adinsignia.com/new-instragram.php",
         {
           postUrl: link,
           maxComments: 100,
@@ -124,7 +151,7 @@ export default function Giveaway(): JSX.Element {
       if (res.data?.success === "success") {
         const comments = res.data?.data?.comments || [];
         const postData = res.data?.data?.post || {};
-        // Save giveaway data
+
         try {
           const storedData = await AsyncStorage.getItem("giveawayData");
           let parsedData = storedData ? JSON.parse(storedData) : [];
@@ -175,23 +202,22 @@ export default function Giveaway(): JSX.Element {
 
   const isWeb = Platform.OS === "web";
   const containerMaxWidth = isWeb ? Math.min(screenWidth * 0.9, 500) : "100%";
+
   return (
     <GradientScreen>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0} // Header की height के हिसाब से adjust करो
+        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
       >
-
-          <Header title="MENU" coins={coins} />
-          <ScrollView
+        <Header title="MENU" coins={coins} />
+        <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.container}>
             <View style={styles.winnersWrapper}>
-
               <View style={[styles.winnerBox, styles.secondWinner]}>
                 <Image source={require("../assets/images/u2.jpg")} style={[styles.avatar, styles.secondAvatar]} />
                 <View style={[styles.messageBox, styles.secondMessageBox]}>
@@ -250,7 +276,7 @@ export default function Giveaway(): JSX.Element {
               <View style={styles.inputContainer}>
                 <TextInput
                   placeholder="https://www.instagram.com/..."
-                  placeholderTextColor="#888"
+                  placeholderTextColor="#fbfbfbff"
                   value={link}
                   onChangeText={setLink}
                   autoCapitalize="none"
@@ -275,7 +301,10 @@ export default function Giveaway(): JSX.Element {
                 <PrimaryButton
                   title={t("next_step")}
                   onPress={startGiveaway}
-                  style={styles.nextButton}
+                  style={[
+                    styles.nextButton,
+                    !link && { backgroundColor: '#5a009e', opacity: 0.6 }
+                  ]}
                   disabled={!link}
                 />
               )}
@@ -283,17 +312,35 @@ export default function Giveaway(): JSX.Element {
                 {t("small_text_home")}
               </Text>
             </View>
-            <View style={styles.adContainer}>
-              <BannerAd
-                unitId={TestIds.BANNER}
-                size={BannerAdSize.BANNER}
-                requestOptions={{
-                  requestNonPersonalizedAdsOnly: true,
-                }}
-              />
-            </View> 
-          </View>
 
+            {/* Dynamic Firebase Remote Config Ads */}
+            {/* {adsLoaded && showAds && bannerId && (
+              <View style={styles.adContainer}>
+                <BannerAd
+                  unitId={bannerId}
+                  size={BannerAdSize.BANNER}
+                  requestOptions={{
+                    requestNonPersonalizedAdsOnly: true,
+                  }}
+                  onAdLoaded={() => console.log("Ad Loaded:", bannerId)}
+            onAdFailedToLoad={(e) => console.log("Ad Failed:", e)}
+                />
+              </View>
+            )} */}
+            {adsLoaded && showAds && bannerId && (
+              <View style={styles.adContainer}>
+                <GAMBannerAd
+                  unitId={bannerId}
+                  sizes={[BannerAdSize.BANNER]}
+                  requestOptions={{
+                    requestNonPersonalizedAdsOnly: true,
+                  }}
+                  onAdLoaded={() => console.log("✅ Ad Loaded:", bannerId)}
+                  onAdFailedToLoad={(error) => console.log("❌ Ad Failed:", error)}
+                />
+              </View>
+            )}
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </GradientScreen>
@@ -307,8 +354,8 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   adContainer: {
-    alignItems: 'center',        // Horizontal center
-    justifyContent: 'center',    // Vertical center
+    alignItems: 'center',
+    justifyContent: 'center',
     width: '100%',
     paddingVertical: 10,
   },
@@ -322,14 +369,14 @@ const styles = StyleSheet.create({
     fontSize: Platform.OS === "web" ? 30 : 40,
     marginBottom: 16,
     textAlign: "left",
-    color: "#8b3a99",
+    color: "#fff",
   },
   title: {
     fontWeight: "400",
     fontSize: Platform.OS === "web" ? 20 : 15,
     marginBottom: 16,
     textAlign: "left",
-    color: "#560a62ff",
+    color: "#fff",
   },
   inputContainer: {
     flexDirection: "row",
@@ -344,6 +391,7 @@ const styles = StyleSheet.create({
     borderColor: "#F7F7F7",
     borderWidth: 2,
     fontSize: 14,
+    color: "#fff",
   },
   container: {
     paddingVertical: 20,
@@ -377,14 +425,14 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   messageBox: {
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffffe8",
     borderRadius: 20,
     height: 35,
     paddingHorizontal: 12,
     paddingRight: 15,
     justifyContent: "center",
     position: "absolute",
-    shadowColor: "#000",
+    shadowColor: "#000000ff",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -422,7 +470,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   line: {
-    backgroundColor: "#E6E6FA",
+    backgroundColor: "#c2c2f6ff",
     marginVertical: 1.5,
     borderRadius: 2,
   },
@@ -482,7 +530,7 @@ const styles = StyleSheet.create({
   disclaimerText: {
     marginTop: 12,
     textAlign: "center",
-    color: "#666",
+    color: "#ffffffff",
     fontSize: 13,
   },
   winnersContainer: {

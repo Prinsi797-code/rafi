@@ -1,18 +1,21 @@
 {
   "expo": {
-    "name": "Randomly",
+    "name": "Epick - comment picker",
     "slug": "RafiNewApp",
-    "version": "1.0.0",
+    "version": "1.0.2",
+    "owner": "prinsi850",
     "orientation": "portrait",
-    "icon": "./assets/images/iconnew.png",
-    "scheme": "Randomly",
+    "icon": "./assets/images/icon.png",
+    "scheme": "commentpicker",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "displayName": "Randomly",
+      "buildNumber": "11",
+      "displayName": "Epick - comment picker",
       "supportsTablet": true,
       "bundleIdentifier": "com.manishdhakecha.rafinewapp",
-       "capabilities": [
+      "googleServicesFile": "./assets/GoogleService-Info.plist",
+      "capabilities": [
         "in-app-purchase"
       ],
       "infoPlist": {
@@ -24,7 +27,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/iconnew.png",
+        "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -40,7 +43,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/iconnew.png",
+          "image": "./assets/images/icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -60,9 +63,8 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d83f073d-eecc-45ff-bfcc-5146168f4ff1"
+        "projectId": "09195af7-abf2-409a-843a-6206ffe59191"
       }
-    },
-    "owner": "hevin202"
+    }
   }
 }

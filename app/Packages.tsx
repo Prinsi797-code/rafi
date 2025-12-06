@@ -1,3 +1,4 @@
+import { fetchAppConfig } from "@/utils/firebaseConfig"; // UPDATED ✔
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import * as InAppPurchases from 'expo-in-app-purchases';
@@ -17,18 +18,18 @@ import {
     View,
     useWindowDimensions,
 } from "react-native";
-import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import Icon from "react-native-vector-icons/Ionicons";
 import GradientScreen from "../components/GradientScreen";
 
 // Type definitions
 interface PackageItem {
     id: number;
-    product_id: string;
+    ios_product_id: string;
     title: string;
     coins: number;
     giveaway: number;
-    total_price: number;
+    ios_total_price: number;
     pkg_image_url: string;
     label_popular?: string;
     label_color?: string;
@@ -51,7 +52,32 @@ export default function Package() {
     const isMounted = useRef(true);
     const { width } = useWindowDimensions();
     const router = useRouter();
+    const [giveawayCoin, setGiveawayCoin] = useState<number | null>(null);
     const { t } = useTranslation();
+
+    const [bannerId, setBannerId] = useState("");
+    const [showAds, setShowAds] = useState(false);
+    const [adsLoaded, setAdsLoaded] = useState(false);
+
+
+    useEffect(() => {
+        const loadConfig = async () => {
+            const config = await fetchAppConfig();
+
+            if (config) {
+                setShowAds(config.picker_ads === true);
+                setBannerId(
+                    Platform.OS === "ios"
+                        ? config.ios_banner_id
+                        : config.android_banner_id
+                );
+            }
+
+            setAdsLoaded(true);
+        };
+
+        loadConfig();
+    }, []);
 
     // Initialize In-App Purchases
     useEffect(() => {
@@ -62,23 +88,43 @@ export default function Package() {
                 console.log('✅ IAP Connected');
 
                 // Set up purchase listener
-                InAppPurchases.setPurchaseListener(({ responseCode, results, errorCode }) => {
+                InAppPurchases.setPurchaseListener(async ({ responseCode, results, errorCode }) => {
+                    console.log('🔔 Purchase Listener Triggered:', responseCode);
+
                     if (responseCode === InAppPurchases.IAPResponseCode.OK) {
-                        results?.forEach(async (purchase) => {
-                            if (!purchase.acknowledged) {
-                                console.log('✅ Purchase successful:', purchase);
-                                // Finish the transaction
-                                await InAppPurchases.finishTransactionAsync(purchase, true);
-                                // Update your backend
-                                await updatePurchaseOnBackend(purchase);
+                        if (results && results.length > 0) {
+                            for (const purchase of results) {
+                                console.log('📦 Purchase Data:', purchase);
+
+                                if (!purchase.acknowledged) {
+                                    try {
+                                        // ✅ STEP 1: Backend verification & coin update
+                                        const updateSuccess = await updatePurchaseOnBackend(purchase);
+
+                                        // ✅ STEP 2: Finish transaction ONLY after backend success
+                                        if (updateSuccess) {
+                                            await InAppPurchases.finishTransactionAsync(purchase, true);
+                                            console.log('✅ Transaction completed & acknowledged');
+                                        } else {
+                                            console.log('⚠️ Backend update failed, transaction not finished');
+                                            Alert.alert(
+                                                '⚠️ Warning',
+                                                'Purchase successful but coins not updated. Please contact support.'
+                                            );
+                                        }
+                                    } catch (error) {
+                                        console.error('❌ Purchase processing error:', error);
+                                    }
+                                }
                             }
-                        });
+                        }
                     } else if (responseCode === InAppPurchases.IAPResponseCode.USER_CANCELED) {
                         console.log('❌ User canceled purchase');
-                        Alert.alert('Cancelled', 'Purchase was cancelled');
+                        setPurchasing(false);
                     } else if (responseCode === InAppPurchases.IAPResponseCode.ERROR) {
                         console.log('❌ Purchase error:', errorCode);
                         Alert.alert('Error', 'Purchase failed. Please try again.');
+                        setPurchasing(false);
                     }
                 });
             } catch (error) {
@@ -89,8 +135,11 @@ export default function Package() {
 
         initializeIAP();
 
+        // ⚠️ Disconnect ko conditional banao
         return () => {
-            InAppPurchases.disconnectAsync();
+            if (Platform.OS !== 'ios') {
+                InAppPurchases.disconnectAsync();
+            }
         };
     }, []);
 
@@ -134,6 +183,31 @@ export default function Package() {
         }
     }, []);
 
+
+    const fetchGiveawayCoin = useCallback(async () => {
+        try {
+            const response = await fetch("https://insta.adinsignia.com/api/giveaway-coin", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            const json = await response.json();
+
+            if (json.success === "success" && json.data?.giveaway) {
+                setGiveawayCoin(Number(json.data.giveaway));
+            } else {
+                console.warn("Invalid response for giveaway coin:", json);
+            }
+        } catch (error) {
+            console.error("Error fetching giveaway coin:", error);
+        }
+    }, []);
+
     const onRefresh = useCallback(() => {
         setRefreshing(true);
         fetchPacks(true);
@@ -145,6 +219,7 @@ export default function Package() {
         const loadData = async () => {
             if (isMounted.current) {
                 await fetchPacks();
+                await fetchGiveawayCoin();
                 const storedResponse = await AsyncStorage.getItem("register_response");
                 if (storedResponse) {
                     const parsed = JSON.parse(storedResponse);
@@ -158,21 +233,32 @@ export default function Package() {
         };
     }, [fetchPacks]);
 
-    const updatePurchaseOnBackend = async (purchase: any) => {
+    const updatePurchaseOnBackend = async (purchase: any): Promise<boolean> => {
         try {
             const storedResponse = await AsyncStorage.getItem("register_response");
-            if (!storedResponse) return;
+            if (!storedResponse) {
+                console.log('❌ No stored response found');
+                return false;
+            }
 
             const parsed = JSON.parse(storedResponse);
             const token = parsed?.data?.bearer_token;
 
             const selectedPack = packs.find((p) => p.id === selected);
-            if (!selectedPack) return;
+            if (!selectedPack) {
+                console.log('❌ Selected pack not found');
+                return false;
+            }
+
+            console.log('🔄 Sending to backend:', {
+                ios_product_id: selectedPack.ios_product_id,
+                transaction_id: purchase.transactionId,
+            });
 
             const response = await axios.post(
-                "https://insta.adinsignia.com/api/purchasecoin",
+                "https://insta.adinsignia.com/api/iospurchasecoin",
                 {
-                    product_id: selectedPack.product_id,
+                    ios_product_id: selectedPack.ios_product_id,
                     transaction_id: purchase.transactionId,
                     purchase_token: purchase.purchaseToken || purchase.transactionReceipt,
                 },
@@ -186,34 +272,46 @@ export default function Package() {
                 }
             );
 
+            console.log('📥 Backend response:', response.data);
+
             if (response.data?.success === "success") {
                 Alert.alert(
                     "🎉 Purchase Successful",
-                    response.data.message || "Your purchase was completed successfully!"
+                    response.data.message || "Coins added successfully!"
                 );
+
+                // ✅ Update coins in state & AsyncStorage
                 if (response.data?.data?.coin_count !== undefined) {
-                    setCoins(Number(response.data.data.coin_count));
-                    parsed.data.coin_count = Number(response.data.data.coin_count);
+                    const newCoinCount = Number(response.data.data.coin_count);
+                    setCoins(newCoinCount);
+                    parsed.data.coin_count = newCoinCount;
                     await AsyncStorage.setItem("register_response", JSON.stringify(parsed));
+                    console.log('✅ Coins updated:', newCoinCount);
                 }
-                fetchPacks();
+
+                // Refresh packages
+                await fetchPacks();
+                setPurchasing(false);
+
+                return true; // ✅ Success
+            } else {
+                console.log('⚠️ Backend returned non-success:', response.data);
+                return false;
             }
-        } catch (error) {
-            console.error("Backend update error:", error);
-        } finally {
+        } catch (error: any) {
+            console.error("❌ Backend update error:", error.response?.data || error.message);
             setPurchasing(false);
+            return false; // ❌ Failed
         }
     };
 
     const handlePurchase = async () => {
-        
         if (purchasing || !iapConnected) {
             if (!iapConnected) {
                 Alert.alert("❌ Error", "In-app purchases not available. Please restart the app.");
             }
             return;
         }
-        
 
         try {
             setPurchasing(true);
@@ -234,14 +332,10 @@ export default function Package() {
 
             // Get product details from store
             const { responseCode, results } = await InAppPurchases.getProductsAsync([
-                selectedPack.product_id
+                selectedPack.ios_product_id
             ]);
-            // const { responseCode, results } = await InAppPurchases.getProductsAsync(['influencer_pack']);
-            console.log("IAP responseCode:", responseCode);
-            console.log("IAP products:", results);
-            console.log('4. Response Code:', responseCode);
-    console.log('5. Products Found:', results?.length);
-    console.log('6. Product Details:', JSON.stringify(results, null, 2));
+
+            console.log("📦 Products found:", results?.length);
 
             if (responseCode === InAppPurchases.IAPResponseCode.OK && results && results.length > 0) {
                 const product = results[0];
@@ -260,12 +354,12 @@ export default function Package() {
                             text: "Buy",
                             onPress: async () => {
                                 try {
-                                    // Initiate purchase
-                                    await InAppPurchases.purchaseItemAsync(selectedPack.product_id);
-                                    // Purchase listener will handle the rest
+                                    // ✅ Initiate purchase - Listener will handle backend call
+                                    await InAppPurchases.purchaseItemAsync(selectedPack.ios_product_id);
+                                    console.log('🚀 Purchase initiated');
                                 } catch (error: any) {
-                                    console.error("Purchase error:", error);
-                                    Alert.alert("❌ Error", "Purchase failed. Please try again.");
+                                    console.error("❌ Purchase error:", error);
+                                    Alert.alert("❌ Error", error.message || "Purchase failed");
                                     setPurchasing(false);
                                 }
                             }
@@ -294,7 +388,7 @@ export default function Package() {
 
             if (index === 0) {
                 staticLabel = "Most Popular";
-                staticColor = "#65017A";
+                staticColor = "#5a009e";
             } else if (index === 4) {
                 staticLabel = "Best Value";
                 staticColor = "#FFB109";
@@ -334,7 +428,7 @@ export default function Package() {
                                 {item.coins} COINS - {item.giveaway} GIVEAWAY
                             </Text>
                         </View>
-                        <Text style={styles.price}>₹{item.total_price}</Text>
+                        <Text style={styles.price}>₹{item.ios_total_price}</Text>
                     </View>
                 </TouchableOpacity>
             );
@@ -374,7 +468,7 @@ export default function Package() {
                             {t("pick_winner_subtitle")}
                         </Text>
                         <Text style={styles.giveawayText}>
-                            {t("giveaway")} : 6 {t("coin")}
+                            {t("giveaway")} : {giveawayCoin !== null ? giveawayCoin : "..."} {t("coins")}
                         </Text>
                     </View>
 
@@ -408,15 +502,19 @@ export default function Package() {
                         />
                     )}
 
-                    <View style={styles.adContainer}>
-                        <BannerAd
-                            unitId={TestIds.BANNER}
-                            size={BannerAdSize.BANNER}
-                            requestOptions={{
-                                requestNonPersonalizedAdsOnly: true,
-                            }}
-                        />
-                    </View>
+                    {adsLoaded && showAds && bannerId && (
+                        <View style={styles.adContainer}>
+                            <BannerAd
+                                unitId={bannerId}
+                                size={BannerAdSize.BANNER}
+                                requestOptions={{
+                                    requestNonPersonalizedAdsOnly: true,
+                                }}
+                                onAdLoaded={() => console.log("Ad Loaded:", bannerId)}
+                                onAdFailedToLoad={(e) => console.log("Ad Failed:", e)}
+                            />
+                        </View>
+                    )}
 
                     <TouchableOpacity
                         style={[styles.button, (!selected || purchasing) && styles.buttonDisabled]}
@@ -488,12 +586,12 @@ const styles = StyleSheet.create({
     mainTitle: {
         fontSize: 30,
         fontWeight: "bold",
-        color: "#333",
+        color: "#ffffffff",
         textAlign: "center",
     },
     subtitle: {
         fontSize: 18,
-        color: "#666",
+        color: "#dfdfdfff",
         textAlign: "center",
         marginTop: 5,
     },
@@ -511,12 +609,12 @@ const styles = StyleSheet.create({
         fontSize: 30,
         fontWeight: "bold",
         marginBottom: 15,
-        color: "#7e1191ff",
+        color: "#fefefeff",
         textAlign: "center",
     },
     loadingText: {
         marginTop: 10,
-        color: "#666",
+        color: "#fbfbfbff",
         fontSize: 16,
     },
     emptyContainer: {
@@ -527,7 +625,7 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 18,
-        color: "#999",
+        color: "#ffffffff",
         marginTop: 10,
         textAlign: "center",
     },
@@ -543,12 +641,12 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
     card: {
-        backgroundColor: "#fff",
+        backgroundColor: "#ffffff34",
         borderRadius: 10,
         padding: 15,
         marginBottom: 15,
         elevation: 3,
-        shadowColor: "#000",
+        shadowColor: "#ffffffff",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -556,8 +654,8 @@ const styles = StyleSheet.create({
         borderColor: "transparent",
     },
     selectedCard: {
-        borderColor: "#8B3A99",
-        backgroundColor: "#f9f5ff",
+        borderColor: "#ffffffff",
+        // backgroundColor: "#f9f5ff",
     },
     popularBadge: {
         position: "absolute",
@@ -590,21 +688,21 @@ const styles = StyleSheet.create({
     packTitle: {
         fontSize: 16,
         fontWeight: "bold",
-        color: "#333",
+        color: "#ffffffff",
         marginBottom: 5,
     },
     coinGiveaway: {
         fontSize: 12,
-        color: "#8B3A99",
+        color: "#fdfdfdff",
         fontWeight: "500",
     },
     price: {
         fontSize: 18,
         fontWeight: "bold",
-        color: "#333",
+        color: "#ffffffff",
     },
     button: {
-        backgroundColor: "#8B3A99",
+        backgroundColor: "#5a009e",
         paddingVertical: 15,
         borderRadius: 10,
         alignItems: "center",
@@ -612,7 +710,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     buttonDisabled: {
-        backgroundColor: "#aaa",
+        backgroundColor: "#9573b0ff",
     },
     buttonContent: {
         flexDirection: "row",

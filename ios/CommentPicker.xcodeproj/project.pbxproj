@@ -8,25 +8,27 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		183CC6321C82E7EF0F62A142 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3D242561AAD9E77D8F6927C5 /* PrivacyInfo.xcprivacy */; };
-		21169B0A5B3050CB967F9CA6 /* libPods-CommentPicker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 99165D3088E24DC63036DB5F /* libPods-CommentPicker.a */; };
-		2A93637FC8474907434FA136 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E059F55A642CD1728DA491E1 /* ExpoModulesProvider.swift */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
+		6710FD50023F9F0D7D3DDFAE /* libPods-CommentPicker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EE12BCDAEE872AACAA522D2 /* libPods-CommentPicker.a */; };
+		AB7DFD0AAA07D1956B5ECC80 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DD4315604CA3EE5A0CE25FD2 /* PrivacyInfo.xcprivacy */; };
+		B3DA78D24A964B129CD53FDA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CA0F5108687344BB858461E8 /* GoogleService-Info.plist */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		F622DC19622FA5AF603927C6 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC3E12330C67BEE26B502DB /* ExpoModulesProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		13B07F961A680F5B00A75B9A /* CommentPicker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CommentPicker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = CommentPicker/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = CommentPicker/Info.plist; sourceTree = "<group>"; };
-		3A55C25D43C5DBFA8D42FD4F /* Pods-CommentPicker.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CommentPicker.debug.xcconfig"; path = "Target Support Files/Pods-CommentPicker/Pods-CommentPicker.debug.xcconfig"; sourceTree = "<group>"; };
-		3D242561AAD9E77D8F6927C5 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = CommentPicker/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		7D51300C07BE317E678581F0 /* Pods-CommentPicker.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CommentPicker.release.xcconfig"; path = "Target Support Files/Pods-CommentPicker/Pods-CommentPicker.release.xcconfig"; sourceTree = "<group>"; };
-		99165D3088E24DC63036DB5F /* libPods-CommentPicker.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CommentPicker.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2EE12BCDAEE872AACAA522D2 /* libPods-CommentPicker.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CommentPicker.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3BC3E12330C67BEE26B502DB /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-CommentPicker/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = CommentPicker/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		E059F55A642CD1728DA491E1 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-CommentPicker/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		CA0F5108687344BB858461E8 /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "CommentPicker/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		DC52C4E17AECDD41EAE1D8D5 /* Pods-CommentPicker.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CommentPicker.debug.xcconfig"; path = "Target Support Files/Pods-CommentPicker/Pods-CommentPicker.debug.xcconfig"; sourceTree = "<group>"; };
+		DD4315604CA3EE5A0CE25FD2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = CommentPicker/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		DDA446AF2F99F934D50C652F /* Pods-CommentPicker.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CommentPicker.release.xcconfig"; path = "Target Support Files/Pods-CommentPicker/Pods-CommentPicker.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = CommentPicker/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* CommentPicker-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "CommentPicker-Bridging-Header.h"; path = "CommentPicker/CommentPicker-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -37,7 +39,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				21169B0A5B3050CB967F9CA6 /* libPods-CommentPicker.a in Frameworks */,
+				6710FD50023F9F0D7D3DDFAE /* libPods-CommentPicker.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,7 +55,8 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				3D242561AAD9E77D8F6927C5 /* PrivacyInfo.xcprivacy */,
+				CA0F5108687344BB858461E8 /* GoogleService-Info.plist */,
+				DD4315604CA3EE5A0CE25FD2 /* PrivacyInfo.xcprivacy */,
 			);
 			name = CommentPicker;
 			sourceTree = "<group>";
@@ -62,27 +65,9 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				99165D3088E24DC63036DB5F /* libPods-CommentPicker.a */,
+				2EE12BCDAEE872AACAA522D2 /* libPods-CommentPicker.a */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		586B317C51174FDE799C3EE0 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				A16BDC053DE2F693ADF753CA /* CommentPicker */,
-			);
-			name = ExpoModulesProviders;
-			sourceTree = "<group>";
-		};
-		7D821326C6B3C45926CD70A6 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				3A55C25D43C5DBFA8D42FD4F /* Pods-CommentPicker.debug.xcconfig */,
-				7D51300C07BE317E678581F0 /* Pods-CommentPicker.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -99,8 +84,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				7D821326C6B3C45926CD70A6 /* Pods */,
-				586B317C51174FDE799C3EE0 /* ExpoModulesProviders */,
+				8887AE880F36CF83A8107022 /* Pods */,
+				E63CD1BDB0F2D4B77FBB7D50 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -115,10 +100,20 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		A16BDC053DE2F693ADF753CA /* CommentPicker */ = {
+		8887AE880F36CF83A8107022 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				E059F55A642CD1728DA491E1 /* ExpoModulesProvider.swift */,
+				DC52C4E17AECDD41EAE1D8D5 /* Pods-CommentPicker.debug.xcconfig */,
+				DDA446AF2F99F934D50C652F /* Pods-CommentPicker.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		95FE4F962D6D77A477745FB7 /* CommentPicker */ = {
+			isa = PBXGroup;
+			children = (
+				3BC3E12330C67BEE26B502DB /* ExpoModulesProvider.swift */,
 			);
 			name = CommentPicker;
 			sourceTree = "<group>";
@@ -132,6 +127,14 @@
 			path = CommentPicker/Supporting;
 			sourceTree = "<group>";
 		};
+		E63CD1BDB0F2D4B77FBB7D50 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				95FE4F962D6D77A477745FB7 /* CommentPicker */,
+			);
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -140,14 +143,14 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "CommentPicker" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				FFD40CA06B904F5EF8BDD822 /* [Expo] Configure project */,
+				DAB66207714D007B41B847E2 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				CAB6D6E293AE260F9329D7DA /* [CP] Embed Pods Frameworks */,
-				2AEC5A54BF0202D12E03FAF4 /* [CP-User] [RNGoogleMobileAds] Configuration */,
+				4B391828A2376B4FC79DE637 /* [CP] Embed Pods Frameworks */,
+				76CED3AF31A13FB528BC20BE /* [CP-User] [RNGoogleMobileAds] Configuration */,
 			);
 			buildRules = (
 			);
@@ -197,7 +200,8 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				183CC6321C82E7EF0F62A142 /* PrivacyInfo.xcprivacy in Resources */,
+				B3DA78D24A964B129CD53FDA /* GoogleService-Info.plist in Resources */,
+				AB7DFD0AAA07D1956B5ECC80 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -241,7 +245,25 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		2AEC5A54BF0202D12E03FAF4 /* [CP-User] [RNGoogleMobileAds] Configuration */ = {
+		4B391828A2376B4FC79DE637 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-CommentPicker/Pods-CommentPicker-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-CommentPicker/Pods-CommentPicker-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		76CED3AF31A13FB528BC20BE /* [CP-User] [RNGoogleMobileAds] Configuration */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -344,25 +366,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-CommentPicker/Pods-CommentPicker-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		CAB6D6E293AE260F9329D7DA /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-CommentPicker/Pods-CommentPicker-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-CommentPicker/Pods-CommentPicker-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		FFD40CA06B904F5EF8BDD822 /* [Expo] Configure project */ = {
+		DAB66207714D007B41B847E2 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -389,7 +393,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				2A93637FC8474907434FA136 /* ExpoModulesProvider.swift in Sources */,
+				F622DC19622FA5AF603927C6 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -398,7 +402,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 3A55C25D43C5DBFA8D42FD4F /* Pods-CommentPicker.debug.xcconfig */;
+			baseConfigurationReference = DC52C4E17AECDD41EAE1D8D5 /* Pods-CommentPicker.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -434,7 +438,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7D51300C07BE317E678581F0 /* Pods-CommentPicker.release.xcconfig */;
+			baseConfigurationReference = DDA446AF2F99F934D50C652F /* Pods-CommentPicker.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
