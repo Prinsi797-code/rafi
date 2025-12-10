@@ -10,7 +10,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "buildNumber": "35",
+      "buildNumber": "36",
       "displayName": "Epick - comment picker",
       "supportsTablet": true,
       "bundleIdentifier": "com.manishdhakecha.rafinewapp",
