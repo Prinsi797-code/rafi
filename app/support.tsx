@@ -1,4 +1,4 @@
-import { fetchAppConfig } from "@/utils/firebaseConfig"; // UPDATED ✔
+import { fetchAppConfig } from "@/utils/firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { Video } from "expo-av";
 import { useRouter } from "expo-router";
@@ -13,6 +13,7 @@ import {
     Platform,
     Pressable,
     ScrollView,
+    Share,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -71,11 +72,23 @@ export default function Support(): JSX.Element {
         loadConfig();
     }, []);
 
+    const handleShareApp = async () => {
+        try {
+            const result = await Share.share({
+                message: "Try this awesome app: https://apps.apple.com/in/app/epick-comment-picker/id6754905789"
+            });
+            if (result.action === Share.sharedAction) {
+                console.log("Shared successfully");
+            }
+        } catch (error) {
+            console.log("Error sharing:", error);
+        }
+    };
+
     return (
         <>
             <GradientScreen>
                 <Header coins={15} />
-
                 <ScrollView
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
@@ -92,11 +105,16 @@ export default function Support(): JSX.Element {
                             </ImageBackground>
                         </TouchableOpacity>
 
-                        <Text style={styles.sectionTitle}>{t("support")}</Text>
+                        {/* <Text style={styles.sectionTitle}>{t("support")}</Text> */}
                         <Row
                             image={require("../assets/images/howto.png")}
                             label={t("how_to_giveaway")}
-                            onPress={() => router.push("/howToGiveaway")}
+                            onPress={() =>
+                                router.push({
+                                    pathname: "/howToGiveaway",
+                                    params: { from: "support" },
+                                })
+                            }
                         />
                         <Row
                             image={require("../assets/images/help.png")}
@@ -107,23 +125,43 @@ export default function Support(): JSX.Element {
                                 )
                             }
                         />
-                        <Row image={require("../assets/images/rateus.png")} label={t("rate_us")} />
-                        <Row image={require("../assets/images/shareus.png")} label={t("share_app")} />
-
+                        <Row
+                            image={require("../assets/images/rateus.png")}
+                            label={t("rate_us")}
+                            onPress={() => {
+                                Linking.openURL("https://apps.apple.com/in/app/epick-comment-picker/id6754905789");
+                            }}
+                        />
+                        {/* <Row image={require("../assets/images/shareus.png")} label={t("share_app")} /> */}
+                        <Row
+                            image={require("../assets/images/shareus.png")}
+                            label={t("share_app")}
+                            onPress={handleShareApp}
+                        />
 
                         <Text style={styles.sectionTitle}>{t("history")}</Text>
+
                         <Row
                             image={require("../assets/images/givehistory.png")}
                             label={t("giveaway_history")}
-                            onPress={() => router.push("/History")}
-
+                            onPress={() =>
+                                router.push({
+                                    pathname: "/History",
+                                    params: { from: "support" },
+                                })
+                            }
                         />
 
                         <Text style={styles.sectionTitle}>{t("preferences")}</Text>
+                        
                         <Row
                             image={require("../assets/images/language.png")}
                             label={t("change_language")}
-                            onPress={() => router.push("/ChangeLanguage")}
+                            onPress={() => router.push({
+                                    pathname: "/ChangeLanguage",
+                                    params: { from: "support" },
+                                })
+                            }
                         />
 
                         <Text style={styles.sectionTitle}>{t("premium")}</Text>

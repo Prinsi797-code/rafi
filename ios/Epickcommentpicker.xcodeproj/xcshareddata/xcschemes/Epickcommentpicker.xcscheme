@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "CommentPicker.app"
-               BlueprintName = "CommentPicker"
-               ReferencedContainer = "container:CommentPicker.xcodeproj">
+               BuildableName = "Epickcommentpicker.app"
+               BlueprintName = "Epickcommentpicker"
+               ReferencedContainer = "container:Epickcommentpicker.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "CommentPickerTests.xctest"
-               BlueprintName = "CommentPickerTests"
-               ReferencedContainer = "container:CommentPicker.xcodeproj">
+               BuildableName = "EpickcommentpickerTests.xctest"
+               BlueprintName = "EpickcommentpickerTests"
+               ReferencedContainer = "container:Epickcommentpicker.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "CommentPicker.app"
-            BlueprintName = "CommentPicker"
-            ReferencedContainer = "container:CommentPicker.xcodeproj">
+            BuildableName = "Epickcommentpicker.app"
+            BlueprintName = "Epickcommentpicker"
+            ReferencedContainer = "container:Epickcommentpicker.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "CommentPicker.app"
-            BlueprintName = "CommentPicker"
-            ReferencedContainer = "container:CommentPicker.xcodeproj">
+            BuildableName = "Epickcommentpicker.app"
+            BlueprintName = "Epickcommentpicker"
+            ReferencedContainer = "container:Epickcommentpicker.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

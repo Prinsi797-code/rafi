@@ -1,10 +1,11 @@
+import AdsManager from "@/services/adsManager";
 import { Ionicons as Icon } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import * as Application from "expo-application";
 import { useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -19,6 +20,7 @@ import {
     View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
+import { BannerAdSize, GAMBannerAd } from 'react-native-google-mobile-ads';
 import GradientScreen from "../components/GradientScreen";
 
 async function getDeviceIdSafe(): Promise<string> {
@@ -48,7 +50,6 @@ export default function GiveawayRules() {
     const [openWinner, setOpenWinner] = useState(false);
     const [openAltWinner, setOpenAltWinner] = useState(false);
 
-
     const [loading, setLoading] = useState(true);
     const [countdown, setCountdown] = useState(3);
     const [participation, setParticipation] = useState(false);
@@ -56,14 +57,24 @@ export default function GiveawayRules() {
     const [starting, setStarting] = useState(false);
     const [giveawayTitle, setGiveawayTitle] = useState("");
 
-
     const [isRecording, setIsRecording] = useState(false);
     const [screenRecordEnabled, setScreenRecordEnabled] = useState(false);
     const [thumbError, setThumbError] = useState(false);
     const [imgError, setImgError] = useState(false);
-
-
     const router = useRouter();
+
+    // Banner Ad Config
+    const [bannerConfig, setBannerConfig] = useState<{
+        show: boolean;
+        id: string;
+        position: string;
+    } | null>(null);
+
+    // Load Banner Ad Config
+    useEffect(() => {
+        const config = AdsManager.getBannerConfig('home');
+        setBannerConfig(config);
+    }, []);
 
     const winnerItems = [
         { label: "1", value: "1" },
@@ -201,13 +212,10 @@ export default function GiveawayRules() {
                 setStarting(false);
             }
         } catch (err: any) {
-            // console.error("API Error:", err);
             if (err.response) {
-                // Server responded with error status (404, 500, etc.)
                 const errorData = err.response.data;
 
                 if (errorData?.error === true && errorData?.message) {
-                    // API returned error object with message
                     Alert.alert("Request Failed", errorData.message);
                 } else if (err.response.status === 404) {
                     Alert.alert("Request Failed", "Service not found. Please try again later.");
@@ -215,13 +223,10 @@ export default function GiveawayRules() {
                     Alert.alert("Request Failed", errorData?.message || "An error occurred. Please try again.");
                 }
             } else if (err.request) {
-                // Request was made but no response received (network issue)
                 Alert.alert("Network Error", "Unable to connect. Please check your internet connection.");
             } else {
-                // Something else happened
                 Alert.alert("Error", "Something went wrong! Please try again.");
             }
-
             setStarting(false);
         }
     };
@@ -248,22 +253,31 @@ export default function GiveawayRules() {
             </View> */}
 
             <View style={styles.customHeader}>
+
+                {/* Back Button */}
                 <TouchableOpacity
                     onPress={handleBackHome}
-                    style={styles.homeButton}
+                    style={styles.backButton}
                     activeOpacity={0.7}
                 >
                     <View style={styles.iconWrapper}>
-                        <Icon name="home" size={20} color="#65017A" />
+                        <Icon name="chevron-back-outline" size={20} color="#65017A" />
                     </View>
                 </TouchableOpacity>
+
+                {/* Center Title */}
+                <Text style={styles.headerTitle}>Giveaway Rules</Text>
+
+                {/* Recording Indicator */}
                 {isRecording && (
                     <View style={styles.recordingIndicator}>
                         <View style={styles.recordingDot} />
                         <Text style={styles.recordingText}>REC</Text>
                     </View>
                 )}
+
             </View>
+
 
             <ScrollView
                 style={{ flex: 1, padding: 16 }}
@@ -278,7 +292,7 @@ export default function GiveawayRules() {
                         </View>
                     )}
                     <Image source={{ uri: data.media[0].thumbnail }} style={styles.image} onLoadStart={() => setLoading(true)} onLoadEnd={() => setLoading(false)} />
-                    
+
                     {/* <Image
     source={
         imgError
@@ -319,6 +333,19 @@ export default function GiveawayRules() {
                     {/* </View> */}
 
                     {/* Giveaway Title */}
+                    {bannerConfig && bannerConfig.show && (
+                        <View style={styles.adContainer}>
+                            <GAMBannerAd
+                                unitId={bannerConfig.id}
+                                sizes={[BannerAdSize.BANNER]}
+                                requestOptions={{
+                                    requestNonPersonalizedAdsOnly: true,
+                                }}
+                                onAdLoaded={() => console.log("Giveaway Rules Ad Loaded")}
+                                onAdFailedToLoad={(error) => console.log("Home Banner Ad Failed:", error)}
+                            />
+                        </View>
+                    )}
                     <View style={styles.titlegiveaway}>
                         <Text style={styles.label}>Giveaway Title</Text>
                         <TextInput placeholder="Holiday Giveaway" style={styles.input} placeholderTextColor="#ffffffff" value={giveawayTitle}
@@ -336,7 +363,7 @@ export default function GiveawayRules() {
                                     items={winnerItems}
                                     setOpen={(val) => {
                                         setOpenWinner(val);
-                                        if (val) setOpenAltWinner(false); // close other dropdown
+                                        if (val) setOpenAltWinner(false);
                                     }}
                                     setValue={setWinner}
                                     placeholder="Select Winner"
@@ -417,7 +444,7 @@ export default function GiveawayRules() {
                 <TouchableOpacity
                     style={[
                         styles.button,
-                        starting && styles.buttonDisabled  // disabled state styling
+                        starting && styles.buttonDisabled
                     ]}
                     onPress={startGiveawayHandler}
                     disabled={starting}
@@ -446,9 +473,8 @@ const styles = StyleSheet.create({
     },
     iconWrapper: {
         backgroundColor: "#ffff",
-        padding: 7,
-        borderRadius: 12,
-        marginBottom: 4,
+        padding: 1,
+        borderRadius: 50,
     },
     image: {
         width: "100%",
@@ -457,8 +483,7 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: "row",
         justifyContent: "space-between",
-        // marginTop: 10,
-        gap: 10, // works in RN 0.71+
+        gap: 10,
     },
     column: {
         flex: 1,
@@ -466,14 +491,13 @@ const styles = StyleSheet.create({
 
     label: {
         fontWeight: "800",
-        // marginTop: 16,
         marginBottom: 6,
         fontSize: 16,
         color: "#ffffffff",
 
     },
     buttonDisabled: {
-        backgroundColor: "#A67DB1",  // lighter shade when disabled
+        backgroundColor: "#A67DB1",
         opacity: 0.8,
     },
 
@@ -489,7 +513,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginTop: 10,
     },
-    smalltext:{
+    smalltext: {
         color: "#c3c3c3b1",
         marginRight: 35,
     },
@@ -512,6 +536,14 @@ const styles = StyleSheet.create({
     homeButton: {
         flexDirection: "column",
         alignItems: "center",
+    },
+    adContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        // marginTop: 5,
+        // marginBottom: 5,
+        paddingVertical: 10,
     },
     recordingIndicator: {
         flexDirection: 'row',
@@ -553,19 +585,26 @@ const styles = StyleSheet.create({
         backgroundColor: "#f0f0f0",
         zIndex: 1,
     },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: "bold",
-        marginLeft: 10,
-        color: "#333",
-        textAlign: "center",
-    },
     customHeader: {
         flexDirection: "row",
         alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 16,
         paddingVertical: 12,
-        paddingTop: 15,
-        marginLeft: 15,
+    },
+
+    backButton: {
+        marginTop: 3,
+        marginLeft: 5,
+    },
+
+    headerTitle: {
+        flex: 1,
+        textAlign: "center",
+        fontSize: 20,
+        fontWeight: "800",
+        color: "#fff",
+        marginRight: 40,
     },
     overlay: {
         position: "absolute",

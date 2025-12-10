@@ -54,7 +54,7 @@ const GiveawayStart = () => {
                 params: {
                     winnersData: JSON.stringify(parsedWinners),
                     postData,
-                    comments: comments, // ✅ pass karo
+                    comments: comments,
                 },
             });
         }
@@ -101,7 +101,6 @@ export default GiveawayStart;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // backgroundColor: "#fff",
         justifyContent: "center",
         alignItems: "center",
     },

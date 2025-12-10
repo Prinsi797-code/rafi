@@ -1,12 +1,13 @@
-import { Ionicons } from "@expo/vector-icons";
+import AdsManager from "@/services/adsManager";
+import { Ionicons as Icon } from "@expo/vector-icons";
 import { Video } from "expo-av";
-import { useRouter } from "expo-router";
-import React, { JSX, memo, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { JSX, memo, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Image, ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { BannerAdSize, GAMBannerAd } from 'react-native-google-mobile-ads';
 import GradientScreen from "../components/GradientScreen";
 import { radius } from "../utils/theme";
-
 
 type RowProps = {
     image: any;
@@ -20,7 +21,7 @@ const Row = memo(({ image, label, onPress }: RowProps): JSX.Element => (
             <Image source={image} style={styles.rowImage} />
             <Text style={styles.rowLabel}>{label}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={18} />
+        <Icon name="chevron-forward" size={18} />
     </Pressable>
 ));
 
@@ -28,30 +29,59 @@ export default function HowToGiveaway() {
     const { t } = useTranslation();
     const router = useRouter();
     const [showVideo, setShowVideo] = useState(false);
+    const { from } = useLocalSearchParams();
+
+    // Banner Ad Config
+    const [bannerConfig, setBannerConfig] = useState<{
+        show: boolean;
+        id: string;
+        position: string;
+    } | null>(null);
+
+    // Load Banner Ad Config
+    useEffect(() => {
+        const config = AdsManager.getBannerConfig('home');
+        setBannerConfig(config);
+    }, []);
+
+    const handleBackPress = async () => {
+        try {
+            await AdsManager.showBackButtonAd('HowToGiveaway');
+            if (from === "support") {
+                router.replace("/support");
+            } else {
+                router.replace("/");
+            }
+        } catch (error) {
+            console.error("Error showing back ad:", error);
+            if (from === "support") {
+                router.replace("/support");
+            } else {
+                router.replace("/");
+            }
+        }
+    };
 
     return (
         <GradientScreen>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={26} color="#fdfdfdff" />
+                <TouchableOpacity
+                    onPress={handleBackPress}
+                    style={styles.backButton}
+                    activeOpacity={0.7}
+                >
+                    <View style={styles.iconWrapper}>
+                        <Icon name="chevron-back-outline" size={20} color="#65017A" />
+                    </View>
                 </TouchableOpacity>
+
                 <Text style={styles.headerTitle}>{t("how_to_giveaway")}</Text>
                 <View style={{ width: 26 }} />
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
                 {/* Demo Video Thumbnail */}
-                {/* <TouchableOpacity onPress={() => setShowVideo(true)}>
-                                    <ImageBackground
-                                        source={require("../assets/images/thumbanil1.png")}
-                                        style={styles.demoBox}
-                                        imageStyle={{ borderRadius: radius.xl }}
-                                    >
-                                        <Ionicons name="play-circle" size={56} color="#FFFFFF" />
-                                        <Text style={styles.demoText}>{t("play_demo")}</Text>
-                                    </ImageBackground>
-                                </TouchableOpacity> */}
                 <View style={styles.container}>
                     <TouchableOpacity onPress={() => setShowVideo(true)}>
                         <ImageBackground
@@ -59,11 +89,12 @@ export default function HowToGiveaway() {
                             style={styles.demoBox}
                             imageStyle={{ borderRadius: radius.xl }}
                         >
-                            <Ionicons name="play-circle" size={56} color="#FFFFFF" />
+                            <Icon name="play-circle" size={56} color="#FFFFFF" />
                             <Text style={styles.demoText}>{t("play_demo")}</Text>
                         </ImageBackground>
                     </TouchableOpacity>
                 </View>
+
                 {/* Steps */}
                 {[
                     { title: t("first_step"), desc: t("first_step_desc") },
@@ -77,6 +108,7 @@ export default function HowToGiveaway() {
                     </View>
                 ))}
             </ScrollView>
+
             {/* Video Modal */}
             <Modal visible={showVideo} transparent animationType="fade">
                 <Pressable
@@ -94,8 +126,22 @@ export default function HowToGiveaway() {
                     </Pressable>
                 </Pressable>
             </Modal>
-        </GradientScreen>
 
+            {/* Banner Ad */}
+            {bannerConfig && bannerConfig.show && (
+                <View style={styles.adContainer}>
+                    <GAMBannerAd
+                        unitId={bannerConfig.id}
+                        sizes={[BannerAdSize.BANNER]}
+                        requestOptions={{
+                            requestNonPersonalizedAdsOnly: true,
+                        }}
+                        onAdLoaded={() => console.log("✅ HowToGiveaway Banner Ad Loaded")}
+                        onAdFailedToLoad={(error) => console.log("❌ HowToGiveaway Banner Ad Failed:", error)}
+                    />
+                </View>
+            )}
+        </GradientScreen>
     );
 }
 
@@ -104,7 +150,14 @@ const styles = StyleSheet.create({
         width: "100%",
         maxWidth: 600,
         paddingHorizontal: 5,
-        // backgroundColor: "#fff",
+    },
+    backButton: {
+        marginTop: 3,
+    },
+    iconWrapper: {
+        backgroundColor: "#ffff",
+        padding: 1,
+        borderRadius: 50,
     },
     header: {
         flexDirection: "row",
@@ -113,11 +166,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 20,
         paddingBottom: 20,
-        // backgroundColor: "#fddde6",
     },
     headerTitle: {
         fontSize: 20,
-        fontWeight: "900",
+        fontWeight: "800",
         color: "#fff"
     },
     videoCard: {
@@ -149,6 +201,14 @@ const styles = StyleSheet.create({
         marginTop: 8,
         fontWeight: "bold",
         color: "white",
+    },
+    adContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        marginTop: 20,
+        marginBottom: 20,
+        paddingVertical: 10,
     },
     row: {
         backgroundColor: "#ffff",

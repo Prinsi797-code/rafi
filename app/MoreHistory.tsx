@@ -1,4 +1,5 @@
 import GradientScreen from "@/components/GradientScreen";
+import AdsManager from "@/services/adsManager";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -13,6 +14,10 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import {
+    BannerAdSize,
+    GAMBannerAd
+} from 'react-native-google-mobile-ads';
 
 const safeImage = (uri?: string) =>
     uri && uri.startsWith("http")
@@ -23,7 +28,21 @@ export default function MoreHistory() {
     const { data } = useLocalSearchParams();
     const [winnerData, setWinnerData] = useState<any>(null);
     const router = useRouter();
+    const searchParams = useLocalSearchParams();
     const { t } = useTranslation();
+
+    // Banner Ad Config
+    const [bannerConfig, setBannerConfig] = useState<{
+        show: boolean;
+        id: string;
+        position: string;
+    } | null>(null);
+
+    // Load Banner Ad Config
+    useEffect(() => {
+        const config = AdsManager.getBannerConfig('home');
+        setBannerConfig(config);
+    }, []);
 
     useEffect(() => {
         if (data) {
@@ -71,10 +90,22 @@ export default function MoreHistory() {
     return (
         <GradientScreen>
             <View style={styles.container}>
-
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={24} color="#fff" />
+                    <TouchableOpacity
+                        onPress={() => {
+                            if (searchParams?.from === "History") {
+                                router.dismissAll();
+                                router.replace("/History");
+                            } else {
+                                router.back();
+                            }
+                        }}
+                        style={styles.backButton}
+                        activeOpacity={0.7}
+                    >
+                        <View style={styles.iconWrapper}>
+                            <Ionicons name="chevron-back-outline" size={20} color="#65017A" />
+                        </View>
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>{t("giveaway_details")}</Text>
                     <View style={{ width: 24 }} />
@@ -180,6 +211,19 @@ export default function MoreHistory() {
                     </View>
                 </ScrollView>
             </View>
+            {bannerConfig && bannerConfig.show && (
+                <View style={styles.adContainer}>
+                    <GAMBannerAd
+                        unitId={bannerConfig.id}
+                        sizes={[BannerAdSize.BANNER]}
+                        requestOptions={{
+                            requestNonPersonalizedAdsOnly: true,
+                        }}
+                        onAdLoaded={() => console.log("✅ Home Banner Ad Loaded")}
+                        onAdFailedToLoad={(error) => console.log("❌ Home Banner Ad Failed:", error)}
+                    />
+                </View>
+            )}
         </GradientScreen>
     );
 }
@@ -196,9 +240,13 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingVertical: 16,
     },
+    backButton: {
+        padding: 5,
+        marginLeft: 5,
+    },
     headerTitle: {
-        fontSize: 25,
-        fontWeight: 'bold',
+        fontSize: 20,
+        fontWeight: '800',
         color: '#fff',
     },
     mainCard: {
@@ -215,9 +263,20 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         elevation: 4,
     },
+    // Banner Ad Styles
+    adContainer: {
+        alignItems: "center",
+        marginTop: 10,
+        marginBottom: 10,
+    },
     postSection: {
         flexDirection: 'row',
         marginBottom: 20,
+    },
+    iconWrapper: {
+        backgroundColor: "#ffff",
+        padding: 1,
+        borderRadius: 50,
     },
     postImage: {
         width: 80,

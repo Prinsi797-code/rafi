@@ -2,15 +2,15 @@
   "expo": {
     "name": "Epick - comment picker",
     "slug": "RafiNewApp",
-    "version": "1.0.2",
-    "owner": "prinsi850",
+    "version": "1.0.6",
+    "owner": "hevin202",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "commentpicker",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "buildNumber": "11",
+      "buildNumber": "33",
       "displayName": "Epick - comment picker",
       "supportsTablet": true,
       "bundleIdentifier": "com.manishdhakecha.rafinewapp",
@@ -63,7 +63,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "09195af7-abf2-409a-843a-6206ffe59191"
+        "projectId": "d83f073d-eecc-45ff-bfcc-5146168f4ff1"
       }
     }
   }

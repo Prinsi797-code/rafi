@@ -1,7 +1,8 @@
 import GradientScreen from "@/components/GradientScreen";
+import AdsManager from "@/services/adsManager";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -12,6 +13,10 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import {
+    BannerAdSize,
+    GAMBannerAd
+} from 'react-native-google-mobile-ads';
 
 const safeJSONParse = (value: string | null) => {
     try {
@@ -26,6 +31,20 @@ export default function History() {
     const [historyData, setHistoryData] = useState<any[]>([]);
     const router = useRouter();
     const { t } = useTranslation();
+    const searchParams = useLocalSearchParams();
+
+    // Banner Ad Config
+    const [bannerConfig, setBannerConfig] = useState<{
+        show: boolean;
+        id: string;
+        position: string;
+    } | null>(null);
+
+    // Load Banner Ad Config
+    useEffect(() => {
+        const config = AdsManager.getBannerConfig('home');
+        setBannerConfig(config);
+    }, []);
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -54,6 +73,24 @@ export default function History() {
         fetchHistory();
     }, []);
 
+    const handleBackPress = async () => {
+        try {
+            await AdsManager.showBackButtonAd('History');
+            if (searchParams?.from === "support") {
+                router.replace("/support");
+            } else {
+                router.back();
+            }
+        } catch (error) {
+            console.error("❌ Error showing back ad:", error);
+            if (searchParams?.from === "support") {
+                router.replace("/support");
+            } else {
+                router.back();
+            }
+        }
+    };
+
     const renderItem = ({ item }: { item: any }) => {
         const thumbnail =
             item?.postData?.media?.[0]?.thumbnail ??
@@ -72,6 +109,7 @@ export default function History() {
                     router.push({
                         pathname: "/MoreHistory",
                         params: {
+                            from: "History",
                             giveawayId: String(item.id),
                             data: JSON.stringify(item),
                         },
@@ -125,14 +163,17 @@ export default function History() {
     return (
         <GradientScreen>
             <View style={styles.container}>
-
                 <View style={styles.header}>
                     <TouchableOpacity
-                        onPress={() => router.back()}
+                        onPress={handleBackPress}
                         style={styles.backButton}
+                        activeOpacity={0.7}
                     >
-                        <Ionicons name="arrow-back" size={24} color="#fff" />
+                        <View style={styles.iconWrapper}>
+                            <Ionicons name="chevron-back-outline" size={20} color="#65017A" />
+                        </View>
                     </TouchableOpacity>
+
                     <Text style={styles.title}>{t("giveaway_history")}</Text>
                     <View style={{ width: 24 }} />
                 </View>
@@ -156,10 +197,22 @@ export default function History() {
                     </View>
                 )}
             </View>
+            {bannerConfig && bannerConfig.show && (
+                <View style={styles.adContainer}>
+                    <GAMBannerAd
+                        unitId={bannerConfig.id}
+                        sizes={[BannerAdSize.BANNER]}
+                        requestOptions={{
+                            requestNonPersonalizedAdsOnly: true,
+                        }}
+                        onAdLoaded={() => console.log("✅ Home Banner Ad Loaded")}
+                        onAdFailedToLoad={(error) => console.log("❌ Home Banner Ad Failed:", error)}
+                    />
+                </View>
+            )}
         </GradientScreen>
     );
 }
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -170,16 +223,23 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: 20,
-        paddingTop: 10,
+        paddingTop: 20,
+        paddingBottom: 20,
+    },
+    // Banner Ad Styles
+    adContainer: {
+        alignItems: "center",
+        marginTop: 10,
+        marginBottom: 10,
     },
     backButton: {
         width: 24,
+        marginLeft: 5,
         color: "#fff",
     },
     title: {
-        fontSize: 25,
-        fontWeight: "600",
+        fontSize: 20,
+        fontWeight: "800",
         textAlign: "center",
         flex: 1,
         color: "#ffffffff",
@@ -188,7 +248,7 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
     },
     card: {
-         backgroundColor: "#ffffff34",
+        backgroundColor: "#ffffff34",
         borderRadius: 16,
         marginHorizontal: 2,
         shadowColor: "#000",
@@ -223,6 +283,11 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         color: "#fdfeffff",
         marginBottom: 4,
+    },
+    iconWrapper: {
+        backgroundColor: "#ffff",
+        padding: 1,
+        borderRadius: 50,
     },
     caption: {
         fontSize: 14,

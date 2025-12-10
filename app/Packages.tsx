@@ -1,4 +1,3 @@
-import { fetchAppConfig } from "@/utils/firebaseConfig"; // UPDATED ✔
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import * as InAppPurchases from 'expo-in-app-purchases';
@@ -15,10 +14,8 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
-    useWindowDimensions,
+    View
 } from "react-native";
-import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import Icon from "react-native-vector-icons/Ionicons";
 import GradientScreen from "../components/GradientScreen";
 
@@ -50,42 +47,15 @@ export default function Package() {
     const [coins, setCoins] = useState<number>(0);
     const [iapConnected, setIapConnected] = useState(false);
     const isMounted = useRef(true);
-    const { width } = useWindowDimensions();
     const router = useRouter();
     const [giveawayCoin, setGiveawayCoin] = useState<number | null>(null);
     const { t } = useTranslation();
-
-    const [bannerId, setBannerId] = useState("");
-    const [showAds, setShowAds] = useState(false);
-    const [adsLoaded, setAdsLoaded] = useState(false);
-
-
-    useEffect(() => {
-        const loadConfig = async () => {
-            const config = await fetchAppConfig();
-
-            if (config) {
-                setShowAds(config.picker_ads === true);
-                setBannerId(
-                    Platform.OS === "ios"
-                        ? config.ios_banner_id
-                        : config.android_banner_id
-                );
-            }
-
-            setAdsLoaded(true);
-        };
-
-        loadConfig();
-    }, []);
-
-    // Initialize In-App Purchases
     useEffect(() => {
         const initializeIAP = async () => {
             try {
                 await InAppPurchases.connectAsync();
                 setIapConnected(true);
-                console.log('✅ IAP Connected');
+                console.log('IAP Connected');
 
                 // Set up purchase listener
                 InAppPurchases.setPurchaseListener(async ({ responseCode, results, errorCode }) => {
@@ -98,10 +68,10 @@ export default function Package() {
 
                                 if (!purchase.acknowledged) {
                                     try {
-                                        // ✅ STEP 1: Backend verification & coin update
+                                        // STEP 1: Backend verification & coin update
                                         const updateSuccess = await updatePurchaseOnBackend(purchase);
 
-                                        // ✅ STEP 2: Finish transaction ONLY after backend success
+                                        // STEP 2: Finish transaction ONLY after backend success
                                         if (updateSuccess) {
                                             await InAppPurchases.finishTransactionAsync(purchase, true);
                                             console.log('✅ Transaction completed & acknowledged');
@@ -500,20 +470,6 @@ export default function Package() {
                             maxToRenderPerBatch={10}
                             windowSize={10}
                         />
-                    )}
-
-                    {adsLoaded && showAds && bannerId && (
-                        <View style={styles.adContainer}>
-                            <BannerAd
-                                unitId={bannerId}
-                                size={BannerAdSize.BANNER}
-                                requestOptions={{
-                                    requestNonPersonalizedAdsOnly: true,
-                                }}
-                                onAdLoaded={() => console.log("Ad Loaded:", bannerId)}
-                                onAdFailedToLoad={(e) => console.log("Ad Failed:", e)}
-                            />
-                        </View>
                     )}
 
                     <TouchableOpacity

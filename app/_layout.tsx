@@ -2,7 +2,8 @@ import { fetchAppConfig } from "@/utils/firebaseConfig";
 import { Drawer } from "expo-router/drawer";
 import React, { useEffect, useState } from "react";
 import { I18nextProvider } from "react-i18next";
-import { Text, View } from "react-native";
+import { AppState, AppStateStatus, Text, View } from "react-native";
+import AdsManager from "../services/adsManager";
 import i18n, { i18nInitPromise } from "../utils/i18n";
 
 export default function RootLayout() {
@@ -13,13 +14,40 @@ export default function RootLayout() {
     i18nInitPromise.then(() => setReady(true));
   }, []);
 
-  // Firestore Config Init
+  // Firestore Config Init + Ads Setup
   useEffect(() => {
     const load = async () => {
-      await fetchAppConfig();
+      const config = await fetchAppConfig();
       setFirebaseReady(true);
+
+      if (config) {
+        // Initialize Ads Manager
+        AdsManager.setConfig(config);
+        AdsManager.initializeAds();
+
+        // Show App Open Ad on first launch
+        setTimeout(() => {
+          AdsManager.showAppOpenAd();
+        }, 1000);
+      }
     };
     load();
+  }, []);
+
+  // Show App Open Ad when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      "change",
+      (nextAppState: AppStateStatus) => {
+        if (nextAppState === "active") {
+          AdsManager.showAppOpenAd();
+        }
+      }
+    );
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   if (!ready || !firebaseReady) {

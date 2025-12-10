@@ -1,13 +1,15 @@
 import GradientScreen from "@/components/GradientScreen";
 import Header from "@/components/Header";
 import PrimaryButton from "@/components/PrimaryButton";
-import { fetchAppConfig } from "@/utils/firebaseConfig"; // UPDATED ✔
+import AdsManager from "@/services/adsManager";
 import { colors } from "@/utils/theme";
+import { Ionicons as Icon } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import * as Application from "expo-application";
 import * as Clipboard from "expo-clipboard";
+import { router } from "expo-router";
 import React, { JSX, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -21,10 +23,13 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View
 } from "react-native";
-// import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
-import { BannerAdSize, GAMBannerAd } from 'react-native-google-mobile-ads'; // ✅ GAMBannerAd
+import {
+  BannerAdSize,
+  GAMBannerAd
+} from 'react-native-google-mobile-ads';
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -63,10 +68,12 @@ export default function Giveaway(): JSX.Element {
   const [coins, setCoins] = useState<number>(0);
   const [token, setToken] = useState<string | null>(null);
 
-  // Firebase Remote Config states
-  const [bannerId, setBannerId] = useState("");
-  const [showAds, setShowAds] = useState(false);
-  const [adsLoaded, setAdsLoaded] = useState(false);
+  // Banner Ad Config
+  const [bannerConfig, setBannerConfig] = useState<{
+    show: boolean;
+    id: string;
+    position: string;
+  } | null>(null);
 
   const navigation = useNavigation();
   const { t } = useTranslation();
@@ -78,23 +85,10 @@ export default function Giveaway(): JSX.Element {
     };
   }, []);
 
+  // Load Banner Ad Config
   useEffect(() => {
-    const loadConfig = async () => {
-      const config = await fetchAppConfig();
-
-      if (config) {
-        setShowAds(config.picker_ads === true);
-        setBannerId(
-          Platform.OS === "ios"
-            ? config.ios_banner_id
-            : config.android_banner_id
-        );
-      }
-
-      setAdsLoaded(true);
-    };
-
-    loadConfig();
+    const config = AdsManager.getBannerConfig('home');
+    setBannerConfig(config);
   }, []);
 
   useFocusEffect(
@@ -175,6 +169,10 @@ export default function Giveaway(): JSX.Element {
         } catch (storageErr) {
           console.log("❌ Error saving data:", storageErr);
         }
+
+        // Show Interstitial Ad before navigation
+        await AdsManager.showInterstitialAd('language_to_home');
+
         navigation.navigate("GiveawayRules", {
           data: { ...res.data, post_url: link },
           comments,
@@ -311,37 +309,42 @@ export default function Giveaway(): JSX.Element {
               <Text style={styles.disclaimerText}>
                 {t("small_text_home")}
               </Text>
-            </View>
+              <View style={styles.centerInline}>
+                <TouchableOpacity
+                  style={styles.inlineButton}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/howToGiveaway",
+                      params: { from: "home" },
+                    })
+                  }
+                >
+                  <Icon
+                    name="help-circle-outline"
+                    size={18}
+                    color="#65017A"
+                    style={{ marginRight: 6, backgroundColor: "#fff", borderRadius: 50 }}
+                  />
 
-            {/* Dynamic Firebase Remote Config Ads */}
-            {/* {adsLoaded && showAds && bannerId && (
-              <View style={styles.adContainer}>
-                <BannerAd
-                  unitId={bannerId}
-                  size={BannerAdSize.BANNER}
-                  requestOptions={{
-                    requestNonPersonalizedAdsOnly: true,
-                  }}
-                  onAdLoaded={() => console.log("Ad Loaded:", bannerId)}
-            onAdFailedToLoad={(e) => console.log("Ad Failed:", e)}
-                />
+                  <Text style={[styles.disclaimerText, { marginTop: 0,fontWeight: 700, color: "#cdecf4bc" }]}>{t("how_to_giveaway")}</Text>
+                </TouchableOpacity>
               </View>
-            )} */}
-            {adsLoaded && showAds && bannerId && (
-              <View style={styles.adContainer}>
+            </View>
+          </View>
+        </ScrollView>
+        {bannerConfig && bannerConfig.show && (
+              <View style={styles.stickyAdContainer}>
                 <GAMBannerAd
-                  unitId={bannerId}
+                  unitId={bannerConfig.id}
                   sizes={[BannerAdSize.BANNER]}
                   requestOptions={{
                     requestNonPersonalizedAdsOnly: true,
                   }}
-                  onAdLoaded={() => console.log("✅ Ad Loaded:", bannerId)}
-                  onAdFailedToLoad={(error) => console.log("❌ Ad Failed:", error)}
+                  onAdLoaded={() => console.log("Home Banner Ad Loaded")}
+                  onAdFailedToLoad={(error) => console.log("Home Banner Ad Failed:", error)}
                 />
               </View>
             )}
-          </View>
-        </ScrollView>
       </KeyboardAvoidingView>
     </GradientScreen>
   );
@@ -357,6 +360,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    marginTop: 20,
+    marginBottom: 20,
     paddingVertical: 10,
   },
   contentCard: {
@@ -378,11 +383,46 @@ const styles = StyleSheet.create({
     textAlign: "left",
     color: "#fff",
   },
+  stickyAdContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    marginTop: 6,
+    right: 0,
+    //  backgroundColor: "#ffffffe8",
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 1000,
+  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
   },
+  centerInline: {
+    width: "100%",
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 10,
+  },
+
+  inlineButton: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  inlineContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+  },
+
   textInput: {
     flex: 1,
     borderRadius: radius.md,

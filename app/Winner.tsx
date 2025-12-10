@@ -1,3 +1,4 @@
+import AdsManager from "@/services/adsManager";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Updates from 'expo-updates';
@@ -16,6 +17,7 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
+import { BannerAdSize, GAMBannerAd } from 'react-native-google-mobile-ads';
 import GradientScreen from "../components/GradientScreen";
 
 type Commenter = {
@@ -55,7 +57,6 @@ export default function PickWinner() {
     const [postData, setPostData] = useState<any>(null);
     const [isScrolling, setIsScrolling] = useState(true);
 
-    // New state for animation
     const [revealedWinners, setRevealedWinners] = useState<WinnerItem[]>([]);
     const [revealedSubstitutes, setRevealedSubstitutes] = useState<WinnerItem[]>([]);
     const [currentWinnerIndex, setCurrentWinnerIndex] = useState(0);
@@ -66,10 +67,24 @@ export default function PickWinner() {
     const listRef = useRef<FlatList<Commenter>>(null);
     const scrollIntervalRef = useRef<NodeJS.Timer | null>(null);
     const stopTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const scrollIndexRef = useRef(0);
     const zoomAnim = useRef(new Animated.Value(1)).current;
     const { t } = useTranslation();
     const { winnersData, postData: postParam, comments: commentsParam } = useLocalSearchParams();
+    const [circularComments, setCircularComments] = useState<Commenter[]>([]);
 
+    // Banner Ad Config
+    const [bannerConfig, setBannerConfig] = useState<{
+        show: boolean;
+        id: string;
+        position: string;
+    } | null>(null);
+
+    // Load Banner Ad Config
+    useEffect(() => {
+        const config = AdsManager.getBannerConfig('home');
+        setBannerConfig(config);
+    }, []);
     useEffect(() => {
         let mounted = true;
         (async () => {
@@ -95,37 +110,57 @@ export default function PickWinner() {
                         })) ?? [];
 
                     setAllComments(commenters);
+
+                    // Create circular list by repeating comments 3 times
+                    if (commenters.length > 0) {
+                        const circular = [...commenters, ...commenters, ...commenters];
+                        setCircularComments(circular);
+                    }
                 }
             } catch (e) {
                 console.log("Error loading local data:", e);
             }
         })();
-
         return () => {
             mounted = false;
         };
     }, []);
-
-    // Auto-scroll commenters 
     useEffect(() => {
-        if (!allComments.length || !isScrolling || isRevealing) return;
-
-        let index = 0;
-        scrollIntervalRef.current = setInterval(() => {
-            const size = allComments.length || 1;
-            const target = index % size;
+        if (!circularComments.length || !isScrolling || isRevealing) return;
+        if (scrollIndexRef.current === 0 && allComments.length > 0) {
+            scrollIndexRef.current = allComments.length;
             try {
                 listRef.current?.scrollToIndex({
-                    index: target,
+                    index: scrollIndexRef.current,
+                    animated: false,
+                });
+            } catch (e) {
+                console.log("Initial scroll error:", e);
+            }
+        }
+        scrollIntervalRef.current = setInterval(() => {
+            scrollIndexRef.current += 1;
+            if (scrollIndexRef.current >= allComments.length * 2) {
+                scrollIndexRef.current = allComments.length;
+                try {
+                    listRef.current?.scrollToIndex({
+                        index: scrollIndexRef.current,
+                        animated: false,
+                    });
+                } catch (e) {
+                    console.log("Reset scroll error:", e);
+                }
+            }
+            try {
+                listRef.current?.scrollToIndex({
+                    index: scrollIndexRef.current,
                     animated: true,
                 });
-            } catch {
-                listRef.current?.scrollToOffset({ offset: 0, animated: true });
+            } catch (e) {
+                console.log("Scroll error:", e);
             }
-            index++;
-        }, 100);
+        }, 200); // PEHLE 100 tha, AB 200 (SLOW)
 
-        // Stop after 3s and reveal winner
         stopTimerRef.current = setTimeout(() => {
             if (scrollIntervalRef.current) clearInterval(scrollIntervalRef.current);
             scrollIntervalRef.current = null;
@@ -139,7 +174,7 @@ export default function PickWinner() {
             scrollIntervalRef.current = null;
             stopTimerRef.current = null;
         };
-    }, [allComments, isScrolling, isRevealing, currentWinnerIndex]);
+    }, [circularComments, allComments, isScrolling, isRevealing, currentWinnerIndex]);
 
     const revealWinner = () => {
         const totalWinners = winners.length;
@@ -147,7 +182,8 @@ export default function PickWinner() {
         const totalAll = totalWinners + totalSubstitutes;
 
         if (currentWinnerIndex >= totalAll) {
-            // All winners revealed, show post info
+            console.log("All winners revealed, showing post info");
+            setIsScrolling(false);
             setTimeout(() => {
                 setShowPostInfo(true);
             }, 500);
@@ -155,87 +191,132 @@ export default function PickWinner() {
         }
 
         setIsRevealing(true);
-
-        // Determine if current is a winner or substitute
         const isWinner = currentWinnerIndex < totalWinners;
         const currentItem = isWinner
             ? winners[currentWinnerIndex]
             : substitutes[currentWinnerIndex - totalWinners];
 
         const username = currentItem?.user?.username ?? "";
-
-        // Find the commenter in the list
         const commenterIndex = allComments.findIndex(
             c => c.username === username
         );
 
         if (commenterIndex !== -1) {
-            // Scroll to the winner
-            try {
-                listRef.current?.scrollToIndex({
-                    index: commenterIndex,
-                    animated: true,
-                    viewPosition: 0.5 // Center the item
-                });
-            } catch (e) {
-                console.log("Scroll error:", e);
-            }
+            // Winner ko center-right position pe lana hai (2 steps ahead)
+            const scrollToWinner = () => {
+                // Current position aur target position calculate karo
+                const currentModulo = scrollIndexRef.current % allComments.length;
 
-            // Highlight and zoom animation
-            setHighlightedUsername(username);
-            // Zoom in animation
-            Animated.sequence([
-                Animated.timing(zoomAnim, {
-                    toValue: 1.5,
-                    duration: 400,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(zoomAnim, {
-                    toValue: 1,
-                    duration: 400,
-                    useNativeDriver: true,
-                })
-            ]).start(() => {
-                // Add to revealed list
-                if (isWinner) {
-                    setRevealedWinners(prev => [...prev, currentItem]);
+                // Winner ko 2 positions aage (center-right) pe lana hai
+                const targetPosition = (commenterIndex + allComments.length - 2) % allComments.length;
+
+                // Check if winner is at correct position (2 steps behind current scroll)
+                const isAtTargetPosition = currentModulo === targetPosition;
+
+                if (!isAtTargetPosition) {
+                    // Keep scrolling until winner reaches target position
+                    scrollIndexRef.current += 1;
+
+                    // Handle circular reset
+                    if (scrollIndexRef.current >= allComments.length * 2) {
+                        scrollIndexRef.current = allComments.length;
+                        try {
+                            listRef.current?.scrollToIndex({
+                                index: scrollIndexRef.current,
+                                animated: false,
+                            });
+                        } catch (e) { }
+                    }
+
+                    try {
+                        listRef.current?.scrollToIndex({
+                            index: scrollIndexRef.current,
+                            animated: true,
+                        });
+                    } catch (e) { }
+
+                    // Continue scrolling
+                    setTimeout(scrollToWinner, 150);
                 } else {
-                    setRevealedSubstitutes(prev => [...prev, currentItem]);
+                    // Winner is NOW at center-right position - highlight immediately
+                    setHighlightedUsername(username);
+
+                    // Wait 500ms to show highlight, then zoom
+                    setTimeout(() => {
+                        Animated.sequence([
+                            Animated.timing(zoomAnim, {
+                                toValue: 1.5,
+                                duration: 400,
+                                useNativeDriver: true,
+                            }),
+                            Animated.timing(zoomAnim, {
+                                toValue: 1,
+                                duration: 400,
+                                useNativeDriver: true,
+                            })
+                        ]).start(() => {
+                            // Add to list AFTER zoom completes
+                            if (isWinner) {
+                                setRevealedWinners(prev => [...prev, currentItem]);
+                            } else {
+                                setRevealedSubstitutes(prev => [...prev, currentItem]);
+                            }
+
+                            setTimeout(() => {
+                                setHighlightedUsername(null);
+                                const newIndex = currentWinnerIndex + 1;
+                                setCurrentWinnerIndex(newIndex);
+                                setIsRevealing(false);
+
+                                if (newIndex >= totalAll) {
+                                    console.log("Last winner added, showing post info");
+                                    setIsScrolling(false);
+                                    setTimeout(() => {
+                                        setShowPostInfo(true);
+                                    }, 1000);
+                                } else {
+                                    setTimeout(() => {
+                                        setIsScrolling(true);
+                                    }, 1000);
+                                }
+                            }, 500);
+                        });
+                    }, 500);
                 }
-
-                setHighlightedUsername(null);
-                setCurrentWinnerIndex(prev => prev + 1);
-                setIsRevealing(false);
-
-                // Start scrolling again for next winner
-                setTimeout(() => {
-                    setIsScrolling(true);
-                }, 1000);
-            });
+            };
+            scrollToWinner();
         } else {
-            // If winner not found in commenters, skip
+            // Winner not found in comments - add directly
             if (isWinner) {
                 setRevealedWinners(prev => [...prev, currentItem]);
             } else {
                 setRevealedSubstitutes(prev => [...prev, currentItem]);
             }
-            setCurrentWinnerIndex(prev => prev + 1);
+            const newIndex = currentWinnerIndex + 1;
+            setCurrentWinnerIndex(newIndex);
             setIsRevealing(false);
-            setTimeout(() => {
-                setIsScrolling(true);
-            }, 1000);
+
+            if (newIndex >= totalAll) {
+                console.log("Last winner added (not found), showing post info");
+                setIsScrolling(false);
+                setTimeout(() => {
+                    setShowPostInfo(true);
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    setIsScrolling(true);
+                }, 500);
+            }
         }
     };
-
     const getItemLayout = useCallback(
         (_: Commenter[] | null | undefined, index: number) => ({
-            length: 84,
-            offset: 84 * index,
+            length: 120,  // PEHLE 84 tha, AB 120 (BADA)
+            offset: 120 * index,
             index,
         }),
         []
     );
-
     const openProfile = useCallback(async (profileUrl?: string, username?: string) => {
         try {
             const fallback = username ? `https://www.instagram.com/${username}` : undefined;
@@ -260,10 +341,9 @@ export default function PickWinner() {
         }
     }, []);
 
-    if (!allComments.length) {
+    if (!circularComments.length) {
         return null;
     }
-
     return (
         <GradientScreen>
             <View style={{ flex: 1, paddingVertical: 12 }}>
@@ -272,12 +352,13 @@ export default function PickWinner() {
                     <View style={styles.scrollSection}>
                         <FlatList
                             ref={listRef}
-                            data={allComments}
-                            keyExtractor={(_, i) => String(i)}
+                            data={circularComments}
+                            keyExtractor={(item, i) => `${item?.username}-${i}`}
                             horizontal
                             showsHorizontalScrollIndicator={false}
-                            initialNumToRender={12}
-                            windowSize={10}
+                            initialNumToRender={5}  // PEHLE 12, AB 5
+                            maxToRenderPerBatch={3}  // ADD THIS - sirf 3 render kare
+                            windowSize={3}  // PEHLE 10, AB 3
                             removeClippedSubviews
                             getItemLayout={getItemLayout}
                             contentContainerStyle={{ alignItems: "center" }}
@@ -329,7 +410,6 @@ export default function PickWinner() {
                         />
                     </View>
                 )}
-
                 {/* Winners List Section */}
                 <View style={{ flex: 1, paddingHorizontal: 16 }}>
                     {showPostInfo && (
@@ -367,10 +447,9 @@ export default function PickWinner() {
 
                     <ScrollView
                         style={{ flex: 1 }}
-                        contentContainerStyle={{ paddingBottom: 100 }} // space for button
+                        contentContainerStyle={{ paddingBottom: 100 }}
                         showsVerticalScrollIndicator={false}
                     >
-
                         {revealedWinners.length > 0 && (
                             <>
                                 <Text style={styles.sectionTitle}>🎉 Winners</Text>
@@ -492,13 +571,11 @@ export default function PickWinner() {
                         <TouchableOpacity
                             style={styles.endButton}
                             onPress={() => {
-                                router.replace("/"); // Navigate to home
+                                router.replace("/");
                                 setTimeout(() => {
                                     if (Platform.OS === "android") {
-                                        // For Android
                                         Expo.Updates.reloadAsync?.();
                                     } else {
-                                        // For iOS or fallback
                                         Updates.reloadAsync?.();
                                     }
                                 }, 500);
@@ -509,25 +586,38 @@ export default function PickWinner() {
                     )}
                 </View>
             </View>
+            {bannerConfig && bannerConfig.show && (
+                <View style={styles.adContainer}>
+                    <GAMBannerAd
+                        unitId={bannerConfig.id}
+                        sizes={[BannerAdSize.BANNER]}
+                        requestOptions={{
+                            requestNonPersonalizedAdsOnly: true,
+                        }}
+                        onAdLoaded={() => console.log("Giveaway Rules Ad Loaded")}
+                        onAdFailedToLoad={(error) => console.log("Home Banner Ad Failed:", error)}
+                    />
+                </View>
+            )}
         </GradientScreen>
     );
 }
-
 const styles = StyleSheet.create({
     center: { flex: 1, justifyContent: "center", alignItems: "center" },
     scrollSection: {
-        height: 120,
+        height: 150,  // PEHLE 120, AB 150
         marginBottom: 16,
     },
     profileWrapper: {
+        marginHorizontal: 12,  // PEHLE 8, AB 12
         width: 84,
         alignItems: "center",
         paddingHorizontal: 6,
     },
     avatar: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
+        width: 80,
+        height: 80,
+        borderRadius: 40,
         backgroundColor: "#eee"
     },
     avatarFallback: { backgroundColor: "#e1e1e1" },
@@ -544,8 +634,13 @@ const styles = StyleSheet.create({
         padding: 8,
     },
     highlightedAvatar: {
-        borderWidth: 3,
-        borderColor: "#FFD700",
+        borderWidth: 5,  // PEHLE 4, AB 5
+        borderColor: '#FFD700',
+        shadowColor: '#FFD700',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 1,
+        shadowRadius: 12,  // PEHLE 10, AB 12
+        elevation: 10,
     },
     highlightedText: {
         fontWeight: "bold",
@@ -558,6 +653,14 @@ const styles = StyleSheet.create({
         marginBottom: 25,
         marginTop: 10,
         color: "#fff",
+    },
+    adContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        marginTop: 20,
+        marginBottom: 20,
+        paddingVertical: 10,
     },
     postRow: {
         flexDirection: "row",
