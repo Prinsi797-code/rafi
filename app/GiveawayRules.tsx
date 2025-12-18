@@ -122,7 +122,6 @@ export default function GiveawayRules() {
         { label: "20", value: "20" },
     ];
 
-
     const handleScreenRecordToggle = async (value: boolean) => {
         setScreenRecordEnabled(value);
         setIsRecording(value);

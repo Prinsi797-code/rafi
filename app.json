@@ -2,7 +2,7 @@
   "expo": {
     "name": "Epick - comment picker",
     "slug": "RafiNewApp",
-    "version": "1.0.6",
+    "version": "1.0.8",
     "owner": "hevin202",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,7 +10,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "buildNumber": "36",
+      "buildNumber": "41",
       "displayName": "Epick - comment picker",
       "supportsTablet": true,
       "bundleIdentifier": "com.manishdhakecha.rafinewapp",
