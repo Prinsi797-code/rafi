@@ -39,5 +39,14 @@
     "home": "首页",
     "purchase_package": "购买套餐",
     "main_title": "Instagram 抽奖",
-    "instagram_giveaway": "Instagram 抽奖"
+    "instagram_giveaway": "Instagram 抽奖",
+    "promo_code": "促销码",
+    "add_promo_code": "添加促销码",
+    "view_promo_code": "查看促销码",
+    "copy": "复制",
+    "share": "分享",
+    "submit": "提交",
+    "no_promo_code_available": "暂无可用的促销代码",
+    "user_details": "用户详情",
+    "add_user_details": "添加用户详情"
 }

@@ -39,5 +39,14 @@
     "home": "होम",
     "purchase_package": "पैकेज खरीदें",
     "main_title": "इंस्टाग्राम गिवअवे",
-    "instagram_giveaway": "इंस्टाग्राम गिवअवे"
+    "instagram_giveaway": "इंस्टाग्राम गिवअवे",
+    "promo_code": "प्रोमो कोड",
+    "add_promo_code": "प्रोमो कोड जोड़ें",
+    "view_promo_code": "प्रोमो कोड देखें",
+    "copy": "कॉपी करें",
+    "share": "शेयर करें",
+    "submit": "सबमिट करें",
+    "no_promo_code_available": "कोई प्रोमो कोड उपलब्ध नहीं है",
+    "user_details": "उपयोगकर्ता विवरण",
+    "add_user_details": "उपयोगकर्ता विवरण जोड़ें"
 }

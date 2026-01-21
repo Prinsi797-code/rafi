@@ -25,6 +25,19 @@ import GradientScreen from "../components/GradientScreen";
 
 async function getDeviceIdSafe(): Promise<string> {
     try {
+        // First, try to get device_id from AsyncStorage (from register_response)
+        const saved = await AsyncStorage.getItem("register_response");
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            const deviceId = parsed.data?.device_id;
+
+            if (deviceId) {
+                console.log("Device ID from register_response:", deviceId);
+                return deviceId;
+            }
+        }
+
+        // Fallback to platform-specific device ID if not found in AsyncStorage
         if (Platform.OS === "android") {
             const id = await Application.getAndroidId();
             return id || `android_${Date.now()}`;
@@ -168,7 +181,6 @@ export default function GiveawayRules() {
                 run: 1,
             });
 
-            // ✅ Check for error response from API
             if (res.data?.error === true) {
                 Alert.alert("Request Failed", res.data?.message || "Something went wrong!");
                 setStarting(false);
@@ -176,7 +188,6 @@ export default function GiveawayRules() {
             }
 
             if (res.data?.success === "success") {
-                // ✅ Save winner and post data
                 const storedWinner = await AsyncStorage.getItem("winnerData");
                 let parsedWinners = storedWinner ? JSON.parse(storedWinner) : [];
                 if (!Array.isArray(parsedWinners)) parsedWinners = [parsedWinners];
@@ -236,21 +247,6 @@ export default function GiveawayRules() {
 
     return (
         <GradientScreen>
-            {/* <View style={styles.customHeader}>
-                <TouchableOpacity onPress={() => router.push("/")} style={{ alignItems: "center" }}>
-                    <Icon name="home" size={20} color="#fafafaff" />
-                    <Text style={{ fontSize: 10 }}>Home</Text>
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Giveaway Rules</Text>
-
-                {isRecording && (
-                    <View style={styles.recordingIndicator}>
-                        <View style={styles.recordingDot} />
-                        <Text style={styles.recordingText}>REC</Text>
-                    </View>
-                )}
-            </View> */}
-
             <View style={styles.customHeader}>
 
                 {/* Back Button */}
@@ -277,7 +273,6 @@ export default function GiveawayRules() {
 
             </View>
 
-
             <ScrollView
                 style={{ flex: 1, padding: 16 }}
                 contentContainerStyle={{ paddingBottom: 40 }}
@@ -292,21 +287,6 @@ export default function GiveawayRules() {
                     )}
                     <Image source={{ uri: data.media[0].thumbnail }} style={styles.image} onLoadStart={() => setLoading(true)} onLoadEnd={() => setLoading(false)} />
 
-                    {/* <Image
-    source={
-        imgError
-            ? require("../assets/images/thubmail.jpg")
-            : !thumbError && data?.media?.[0]?.thumbnail
-            ? { uri: data.media[0].thumbnail }
-            : { uri: data.media[0].url }
-    }
-    style={styles.image}
-    onError={() => {
-        if (!thumbError) setThumbError(true);
-        else setImgError(true);
-    }}
-/> */}
-
                     <View style={styles.overlay}>
                         <Text style={styles.username}>@{data.posted_by.username}</Text>
                         <Text style={styles.caption} numberOfLines={2}>
@@ -316,21 +296,6 @@ export default function GiveawayRules() {
                 </View>
 
                 <View style={{ marginTop: 20 }}>
-                    {/* Screen Record */}
-                    {/* <View style={styles.optionRow}> */}
-                    {/* <View style={styles.recordLabelContainer}>
-                            <Text style={styles.optionLabel}>Screen Record</Text>
-                            {isRecording && <Text style={styles.recordingStatus}>Recording...</Text>}
-                        </View> */}
-
-                    {/* <Switch
-                            value={screenRecordEnabled}
-                            onValueChange={handleScreenRecordToggle}
-                            trackColor={{ false: "#767577", true: "#8B3A99" }}
-                            thumbColor={screenRecordEnabled ? "#f4f3f4" : "#f4f3f4"}
-                        /> */}
-                    {/* </View> */}
-
                     {/* Giveaway Title */}
                     {bannerConfig && bannerConfig.show && (
                         <View style={styles.adContainer}>
@@ -384,7 +349,7 @@ export default function GiveawayRules() {
                                     items={altWinnerItems}
                                     setOpen={(val) => {
                                         setOpenAltWinner(val);
-                                        if (val) setOpenWinner(false); // close other dropdown
+                                        if (val) setOpenWinner(false);
                                     }}
                                     setValue={setAltWinner}
                                     placeholder="Select Alternate"
@@ -540,8 +505,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         width: '100%',
-        // marginTop: 5,
-        // marginBottom: 5,
         paddingVertical: 10,
     },
     recordingIndicator: {

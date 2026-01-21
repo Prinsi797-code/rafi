@@ -40,6 +40,16 @@
     "purchase_package": "Purchase Package",
     "main_title": "Instagram Giveaway",
     "instagram_giveaway": "Instagram Giveaway",
-    "coins": "COINS"
+    "coins": "COINS",
+    "promo_code": "PROMO CODE",
+    "add_promo_code": "Add Promo Code",
+    "view_promo_code": "View Promo Code",
+
+    "copy": "COPY",
+    "share": "SHARE",
+    "submit": "SUBMIT",
+    "no_promo_code_available": "No promo code available",
+    "user_details": "User Details",
+    "add_user_details": "Add User Details"
 
 }

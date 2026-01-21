@@ -39,5 +39,14 @@
     "home": "Tuis",
     "purchase_package": "Koop Pakket",
     "main_title": "Instagram Weggee",
-    "instagram_giveaway": "Instagram Weggee"
+    "instagram_giveaway": "Instagram Weggee",
+    "promo_code": "Promosiekode",
+    "add_promo_code": "Voeg promosiekode by",
+    "view_promo_code": "Bekyk promosiekode",
+    "copy": "KOPIEER",
+    "share": "DEEL",
+    "submit": "DIEN IN",
+    "no_promo_code_available": "Geen promosiekode beskikbaar nie",
+    "user_details": "Gebruikerbesonderhede",
+    "add_user_details": "Voeg gebruikerbesonderhede by"
 }

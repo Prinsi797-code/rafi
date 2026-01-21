@@ -39,5 +39,14 @@
     "home": "홈",
     "purchase_package": "패키지 구매",
     "main_title": "Instagram 이벤트",
-    "instagram_giveaway": "Instagram 이벤트"
+    "instagram_giveaway": "Instagram 이벤트",
+    "promo_code": "프로모션 코드",
+    "add_promo_code": "프로모션 코드 추가",
+    "view_promo_code": "프로모션 코드 보기",
+    "copy": "복사",
+    "share": "공유",
+    "submit": "제출",
+    "no_promo_code_available": "사용 가능한 프로모션 코드가 없습니다",
+    "user_details": "사용자 정보",
+    "add_user_details": "사용자 정보 추가"
 }

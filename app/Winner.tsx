@@ -110,8 +110,6 @@ export default function PickWinner() {
                         })) ?? [];
 
                     setAllComments(commenters);
-
-                    // Create circular list by repeating comments 3 times
                     if (commenters.length > 0) {
                         const circular = [...commenters, ...commenters, ...commenters];
                         setCircularComments(circular);
@@ -202,22 +200,13 @@ export default function PickWinner() {
         );
 
         if (commenterIndex !== -1) {
-            // Winner ko center-right position pe lana hai (2 steps ahead)
             const scrollToWinner = () => {
-                // Current position aur target position calculate karo
                 const currentModulo = scrollIndexRef.current % allComments.length;
-
-                // Winner ko 2 positions aage (center-right) pe lana hai
                 const targetPosition = (commenterIndex + allComments.length - 2) % allComments.length;
-
-                // Check if winner is at correct position (2 steps behind current scroll)
                 const isAtTargetPosition = currentModulo === targetPosition;
 
                 if (!isAtTargetPosition) {
-                    // Keep scrolling until winner reaches target position
                     scrollIndexRef.current += 1;
-
-                    // Handle circular reset
                     if (scrollIndexRef.current >= allComments.length * 2) {
                         scrollIndexRef.current = allComments.length;
                         try {
@@ -234,14 +223,9 @@ export default function PickWinner() {
                             animated: true,
                         });
                     } catch (e) { }
-
-                    // Continue scrolling
                     setTimeout(scrollToWinner, 150);
                 } else {
-                    // Winner is NOW at center-right position - highlight immediately
                     setHighlightedUsername(username);
-
-                    // Wait 500ms to show highlight, then zoom
                     setTimeout(() => {
                         Animated.sequence([
                             Animated.timing(zoomAnim, {
@@ -255,7 +239,6 @@ export default function PickWinner() {
                                 useNativeDriver: true,
                             })
                         ]).start(() => {
-                            // Add to list AFTER zoom completes
                             if (isWinner) {
                                 setRevealedWinners(prev => [...prev, currentItem]);
                             } else {
@@ -286,7 +269,6 @@ export default function PickWinner() {
             };
             scrollToWinner();
         } else {
-            // Winner not found in comments - add directly
             if (isWinner) {
                 setRevealedWinners(prev => [...prev, currentItem]);
             } else {
@@ -311,7 +293,7 @@ export default function PickWinner() {
     };
     const getItemLayout = useCallback(
         (_: Commenter[] | null | undefined, index: number) => ({
-            length: 120,  // PEHLE 84 tha, AB 120 (BADA)
+            length: 120,
             offset: 120 * index,
             index,
         }),
@@ -356,9 +338,9 @@ export default function PickWinner() {
                             keyExtractor={(item, i) => `${item?.username}-${i}`}
                             horizontal
                             showsHorizontalScrollIndicator={false}
-                            initialNumToRender={5}  // PEHLE 12, AB 5
-                            maxToRenderPerBatch={3}  // ADD THIS - sirf 3 render kare
-                            windowSize={3}  // PEHLE 10, AB 3
+                            initialNumToRender={5} 
+                            maxToRenderPerBatch={3}
+                            windowSize={3}
                             removeClippedSubviews
                             getItemLayout={getItemLayout}
                             contentContainerStyle={{ alignItems: "center" }}
@@ -605,11 +587,11 @@ export default function PickWinner() {
 const styles = StyleSheet.create({
     center: { flex: 1, justifyContent: "center", alignItems: "center" },
     scrollSection: {
-        height: 150,  // PEHLE 120, AB 150
+        height: 150,
         marginBottom: 16,
     },
     profileWrapper: {
-        marginHorizontal: 12,  // PEHLE 8, AB 12
+        marginHorizontal: 12,
         width: 84,
         alignItems: "center",
         paddingHorizontal: 6,
@@ -634,12 +616,12 @@ const styles = StyleSheet.create({
         padding: 8,
     },
     highlightedAvatar: {
-        borderWidth: 5,  // PEHLE 4, AB 5
+        borderWidth: 5,
         borderColor: '#FFD700',
         shadowColor: '#FFD700',
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 1,
-        shadowRadius: 12,  // PEHLE 10, AB 12
+        shadowRadius: 12,
         elevation: 10,
     },
     highlightedText: {
@@ -680,7 +662,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginTop: 6,
-        backgroundColor: '#8B3A99', // purple bubble background
+        backgroundColor: '#8B3A99',
         alignSelf: 'flex-start',
         paddingHorizontal: 10,
         paddingVertical: 8,

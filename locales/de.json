@@ -39,5 +39,14 @@
     "home": "Startseite",
     "purchase_package": "Paket kaufen",
     "main_title": "Instagram-Giveaway",
-    "instagram_giveaway": "Instagram-Giveaway"
+    "instagram_giveaway": "Instagram-Giveaway",
+    "promo_code": "Aktionscode",
+    "add_promo_code": "Aktionscode hinzufügen",
+    "view_promo_code": "Aktionscode anzeigen",
+    "copy": "KOPIEREN",
+    "share": "TEILEN",
+    "submit": "SENDEN",
+    "no_promo_code_available": "Kein Promo-Code verfügbar",
+    "user_details": "Benutzerdetails",
+    "add_user_details": "Benutzerdetails hinzufügen"
 }

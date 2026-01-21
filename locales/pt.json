@@ -39,5 +39,14 @@
     "home": "Início",
     "purchase_package": "Comprar Pacote",
     "main_title": "Sorteio no Instagram",
-    "instagram_giveaway": "Sorteio no Instagram"
+    "instagram_giveaway": "Sorteio no Instagram",
+    "promo_code": "Código promocional",
+    "add_promo_code": "Adicionar código promocional",
+    "view_promo_code": "Ver código promocional",
+    "copy": "COPIAR",
+    "share": "COMPARTILHAR",
+    "submit": "ENVIAR",
+    "no_promo_code_available": "Nenhum código promocional disponível",
+    "user_details": "Detalhes do usuário",
+    "add_user_details": "Adicionar detalhes do usuário"
 }

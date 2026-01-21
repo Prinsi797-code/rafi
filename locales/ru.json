@@ -39,6 +39,14 @@
     "home": "Главная",
     "purchase_package": "Купить пакет",
     "main_title": "Розыгрыш в Instagram",
-    "instagram_giveaway": "Розыгрыш в Instagram"
-
+    "instagram_giveaway": "Розыгрыш в Instagram",
+    "promo_code": "Промокод",
+    "add_promo_code": "Добавить промокод",
+    "view_promo_code": "Посмотреть промокод",
+    "copy": "КОПИРОВАТЬ",
+    "share": "ПОДЕЛИТЬСЯ",
+    "submit": "ОТПРАВИТЬ",
+    "no_promo_code_available": "Промокод недоступен",
+    "user_details": "Данные пользователя",
+    "add_user_details": "Добавить данные пользователя"
 }

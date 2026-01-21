@@ -39,5 +39,14 @@
     "home": "Accueil",
     "purchase_package": "Acheter un pack",
     "main_title": "Tirage au sort Instagram",
-    "instagram_giveaway": "Tirage au sort Instagram"
+    "instagram_giveaway": "Tirage au sort Instagram",
+    "promo_code": "Code promo",
+    "add_promo_code": "Ajouter un code promo",
+    "view_promo_code": "Voir le code promo",
+    "copy": "COPIER",
+    "share": "PARTAGER",
+    "submit": "SOUMETTRE",
+    "no_promo_code_available": "Aucun code promotionnel disponible",
+    "user_details": "Détails de l'utilisateur",
+    "add_user_details": "Ajouter les détails de l'utilisateur"
 }

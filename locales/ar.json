@@ -39,5 +39,14 @@
     "home": "الرئيسية",
     "purchase_package": "شراء الباقة",
     "main_title": "سحب إنستغرام",
-    "instagram_giveaway": "سحب إنستغرام"
+    "instagram_giveaway": "سحب إنستغرام",
+    "promo_code": "رمز ترويجي",
+    "add_promo_code": "إضافة رمز ترويجي",
+    "view_promo_code": "عرض الرمز الترويجي",
+    "copy": "نسخ",
+    "share": "مشاركة",
+    "submit": "إرسال",
+    "no_promo_code_available": "لا يوجد رمز ترويجي متاح",
+    "user_details": "تفاصيل المستخدم",
+    "add_user_details": "إضافة تفاصيل المستخدم"
 }

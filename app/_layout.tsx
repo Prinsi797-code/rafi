@@ -21,11 +21,8 @@ export default function RootLayout() {
       setFirebaseReady(true);
 
       if (config) {
-        // Initialize Ads Manager
         AdsManager.setConfig(config);
         AdsManager.initializeAds();
-
-        // Show App Open Ad on first launch
         setTimeout(() => {
           AdsManager.showAppOpenAd();
         }, 1000);

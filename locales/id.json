@@ -39,5 +39,14 @@
     "home": "Beranda",
     "purchase_package": "Beli Paket",
     "main_title": "Instagram Giveaway",
-    "instagram_giveaway": "Instagram Giveaway"
+    "instagram_giveaway": "Instagram Giveaway",
+    "promo_code": "Kode Promo",
+    "add_promo_code": "Tambahkan Kode Promo",
+    "view_promo_code": "Lihat Kode Promo",
+    "copy": "SALIN",
+    "share": "BAGIKAN",
+    "submit": "KIRIM",
+    "no_promo_code_available": "Tidak ada kode promo tersedia",
+    "user_details": "Detail Pengguna",
+    "add_user_details": "Tambah Detail Pengguna"
 }

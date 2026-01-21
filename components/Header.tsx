@@ -21,7 +21,7 @@ export default function Header({
             style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
-                alignItems: "center", // ✅ yahan se dono center me ayenge
+                alignItems: "center",
                 padding: 16,
             }}
         >

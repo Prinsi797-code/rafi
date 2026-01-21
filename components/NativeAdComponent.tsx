@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Platform,
-    StyleSheet,
-    Text,
-    View
+  ActivityIndicator,
+  Platform,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 import {
-    BannerAdSize,
-    GAMBannerAd
+  BannerAdSize,
+  GAMBannerAd
 } from 'react-native-google-mobile-ads';
 
 interface NativeAdProps {
@@ -16,23 +16,15 @@ interface NativeAdProps {
   style?: any;
 }
 
-// ✅ Correct Google Test Native Ad IDs
 const NATIVE_AD_TEST_IDS = {
   ios: 'ca-app-pub-3940256099942544/3986624511',
   android: 'ca-app-pub-3940256099942544/2247696110',
 };
 
-/**
- * ✅ WORKING NATIVE AD COMPONENT
- * This uses GAMBannerAd with MEDIUM_RECTANGLE size
- * which Google automatically renders as native-style content ads
- * with images, text, and call-to-action buttons
- */
 const NativeAdComponent: React.FC<NativeAdProps> = ({
   adUnitId,
   style,
 }) => {
-  // Use correct test ID if no adUnitId provided
   const finalAdUnitId = adUnitId || (
     Platform.OS === 'ios' 
       ? NATIVE_AD_TEST_IDS.ios 
@@ -44,7 +36,6 @@ const NativeAdComponent: React.FC<NativeAdProps> = ({
   return (
     <View style={[styles.container, style]}>
       <View style={styles.adCard}>
-        {/* Loading Indicator */}
         {isLoading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color="#666" />
@@ -52,10 +43,9 @@ const NativeAdComponent: React.FC<NativeAdProps> = ({
           </View>
         )}
 
-        {/* Native Style Ad using GAMBannerAd */}
         <GAMBannerAd
           unitId={finalAdUnitId}
-          sizes={[BannerAdSize.MEDIUM_RECTANGLE]} // 300x250 - Best for native-style ads
+          sizes={[BannerAdSize.MEDIUM_RECTANGLE]}
           requestOptions={{
             requestNonPersonalizedAdsOnly: true,
           }}
@@ -71,7 +61,6 @@ const NativeAdComponent: React.FC<NativeAdProps> = ({
           }}
         />
 
-        {/* Ad Label (Required by Google AdMob Policy) */}
         {adLoaded && (
           <View style={styles.adLabel}>
             <Text style={styles.adLabelText}>Ad</Text>

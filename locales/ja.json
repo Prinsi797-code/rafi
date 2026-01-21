@@ -39,5 +39,14 @@
     "home": "ホーム",
     "purchase_package": "パッケージを購入",
     "main_title": "Instagramギブアウェイ",
-    "instagram_giveaway": "Instagramギブアウェイ"
+    "instagram_giveaway": "Instagramギブアウェイ",
+    "promo_code": "プロモコード",
+    "add_promo_code": "プロモコードを追加",
+    "view_promo_code": "プロモコードを表示",
+    "copy": "コピー",
+    "share": "共有",
+    "submit": "送信",
+    "no_promo_code_available": "利用可能なプロモコードはありません",
+    "user_details": "ユーザー詳細",
+    "add_user_details": "ユーザー詳細を追加"
 }

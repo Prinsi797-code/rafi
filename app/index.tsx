@@ -7,7 +7,6 @@ import { Ionicons as Icon } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
-import * as Application from "expo-application";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import React, { JSX, useCallback, useEffect, useRef, useState } from "react";
@@ -18,6 +17,8 @@ import {
   Dimensions,
   Image,
   KeyboardAvoidingView,
+  Linking,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -30,6 +31,7 @@ import {
   BannerAdSize,
   GAMBannerAd
 } from 'react-native-google-mobile-ads';
+import { getDeviceIdSafe } from '../utils/deviceIdHelper';
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -41,32 +43,34 @@ const radius = {
   pill: 999,
 };
 
-async function getDeviceIdSafe(): Promise<string> {
-  try {
-    if (Platform.OS === "android") {
-      const id = await Application.getAndroidId();
-      return id || `android_${Date.now()}`;
-    } else if (Platform.OS === "ios") {
-      const id = await Application.getIosIdForVendorAsync();
-      return id || `ios_${Date.now()}`;
-    } else if (Platform.OS === "web") {
-      return `web_${Date.now()}`;
-    } else {
-      return `device_${Date.now()}`;
-    }
-  } catch (error) {
-    console.warn("Device ID fetch failed:", error);
-    return `fallback_${Date.now()}_${Math.random()
-      .toString(36)
-      .substr(2, 9)}`;
-  }
-}
+// async function getDeviceIdSafe(): Promise<string> {
+//   try {
+//     if (Platform.OS === "android") {
+//       const id = await Application.getAndroidId();
+//       return id || `android_${Date.now()}`;
+//     } else if (Platform.OS === "ios") {
+//       const id = await Application.getIosIdForVendorAsync();
+//       return id || `ios_${Date.now()}`;
+//     } else if (Platform.OS === "web") {
+//       return `web_${Date.now()}`;
+//     } else {
+//       return `device_${Date.now()}`;
+//     }
+//   } catch (error) {
+//     console.warn("Device ID fetch failed:", error);
+//     return `fallback_${Date.now()}_${Math.random()
+//       .toString(36)
+//       .substr(2, 9)}`;
+//   }
+// }
 
 export default function Giveaway(): JSX.Element {
   const [link, setLink] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [coins, setCoins] = useState<number>(0);
   const [token, setToken] = useState<string | null>(null);
+  const [showRewardModal, setShowRewardModal] = useState(false);
+  const [rewardedCoins, setRewardedCoins] = useState<number>(0);
 
   // Banner Ad Config
   const [bannerConfig, setBannerConfig] = useState<{
@@ -91,16 +95,67 @@ export default function Giveaway(): JSX.Element {
     setBannerConfig(config);
   }, []);
 
+  const extractPromoCodeFromURL = async () => {
+    try {
+      const initialURL = await Linking.getInitialURL();
+      if (initialURL) {
+        const url = new URL(initialURL);
+        const promoCode = url.searchParams.get('code');
+        return promoCode;
+      }
+      return null;
+    } catch (error) {
+      console.log("Error extracting promo code:", error);
+      return null;
+    }
+  };
+
+  // Apply promo code
+  const applyPromoCode = async (promoCode: string, deviceId: string) => {
+    try {
+      const response = await axios.post(
+        "https://insta.adinsignia.com/api/promocode",
+        {
+          promo_code: promoCode,
+          device_id: deviceId,
+          name: ""
+        }
+      );
+
+      console.log("Promo Code Response:", response.data);
+
+      if (response?.data?.success && isMounted.current) {
+        const coinsAdded = response.data.coins_added || 5;
+        setRewardedCoins(coinsAdded);
+        setShowRewardModal(true);
+
+        setCoins(prev => prev + coinsAdded);
+
+        const saved = await AsyncStorage.getItem("register_response");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          parsed.data.coin_count = (Number(parsed.data.coin_count) + coinsAdded).toString();
+          await AsyncStorage.setItem("register_response", JSON.stringify(parsed));
+        }
+      }
+    } catch (error) {
+      console.log("Promo code application failed:", error);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       const initRegister = async () => {
         try {
           const deviceId = await getDeviceIdSafe();
+          console.log("📱 Device ID (Persistent):", deviceId);
+
           const res = await axios.post(
             "https://insta.adinsignia.com/api/register",
             { device_id: deviceId }
           );
-          console.log("📌 Auto Register Response:", res.data);
+
+          console.log("Auto Register Response:", res.data);
 
           if (res?.data?.success === "success" && isMounted.current) {
             const fullResponse = res.data;
@@ -110,9 +165,16 @@ export default function Giveaway(): JSX.Element {
               "register_response",
               JSON.stringify(fullResponse)
             );
+            // Check if app was opened via promo code link
+            const promoCode = await extractPromoCodeFromURL();
+            if (promoCode) {
+              console.log("Promo code detected:", promoCode);
+              // Apply promo code silently
+              await applyPromoCode(promoCode, deviceId);
+            }
           }
         } catch (err) {
-          console.log("❌ Auto register failed:", err);
+          console.log("Auto register failed:", err);
         }
       };
 
@@ -167,7 +229,7 @@ export default function Giveaway(): JSX.Element {
             JSON.stringify(parsedData)
           );
         } catch (storageErr) {
-          console.log("❌ Error saving data:", storageErr);
+          console.log("Error saving data:", storageErr);
         }
 
         // Show Interstitial Ad before navigation
@@ -326,30 +388,109 @@ export default function Giveaway(): JSX.Element {
                     style={{ marginRight: 6, backgroundColor: "#fff", borderRadius: 50 }}
                   />
 
-                  <Text style={[styles.disclaimerText, { marginTop: 0,fontWeight: 700, color: "#cdecf4bc" }]}>{t("how_to_giveaway")}</Text>
+                  <Text style={[styles.disclaimerText, { marginTop: 0, fontWeight: 700, color: "#cdecf4bc" }]}>{t("how_to_giveaway")}</Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
         </ScrollView>
         {bannerConfig && bannerConfig.show && (
-              <View style={styles.stickyAdContainer}>
-                <GAMBannerAd
-                  unitId={bannerConfig.id}
-                  sizes={[BannerAdSize.BANNER]}
-                  requestOptions={{
-                    requestNonPersonalizedAdsOnly: true,
-                  }}
-                  onAdLoaded={() => console.log("Home Banner Ad Loaded")}
-                  onAdFailedToLoad={(error) => console.log("Home Banner Ad Failed:", error)}
-                />
-              </View>
-            )}
+          <View style={styles.stickyAdContainer}>
+            <GAMBannerAd
+              unitId={bannerConfig.id}
+              sizes={[BannerAdSize.BANNER]}
+              requestOptions={{
+                requestNonPersonalizedAdsOnly: true,
+              }}
+              onAdLoaded={() => console.log("Home Banner Ad Loaded")}
+              onAdFailedToLoad={(error) => console.log("Home Banner Ad Failed:", error)}
+            />
+          </View>
+        )}
+        {/* Reward Modal */}
+        <Modal
+          visible={showRewardModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowRewardModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Image
+                source={require("../assets/images/coin1.png")}
+                style={styles.coinImage}
+              />
+              <Text style={styles.modalTitle}>{rewardedCoins} COINS REWARDED</Text>
+              <Text style={styles.modalSubtitle}>Reward Unlocked!</Text>
+              <Text style={styles.modalDescription}>
+                Refer coins are now added to your wallet. Use it across the app.
+              </Text>
+              <TouchableOpacity
+                style={styles.doneButton}
+                onPress={() => setShowRewardModal(false)}
+              >
+                <Text style={styles.doneButtonText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </KeyboardAvoidingView>
     </GradientScreen>
   );
 }
 const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#B84FC7',
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    width: '90%',
+    maxWidth: 400,
+  },
+  coinImage: {
+    width: 120,
+    height: 120,
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 12,
+  },
+  modalSubtitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 24,
+    opacity: 0.9,
+  },
+  doneButton: {
+    backgroundColor: '#4A0066',
+    paddingVertical: 16,
+    paddingHorizontal: 80,
+    borderRadius: 12,
+    width: '100%',
+  },
+  doneButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   mainContainer: {
     flex: 1,
     justifyContent: "center",
@@ -389,7 +530,6 @@ const styles = StyleSheet.create({
     left: 0,
     marginTop: 6,
     right: 0,
-    //  backgroundColor: "#ffffffe8",
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 5,

@@ -26,7 +26,7 @@ const firebaseConfig = {
   measurementId: "G-RLG6Z8H444"
 };
 
-// 🔥 Initialize Firebase Only Once
+// Initialize Firebase Only Once
 let app;
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
@@ -37,6 +37,7 @@ const db = getFirestore(app);
 // ------------------------------
 // ⭐ FETCH APP CONFIG FROM FIRESTORE
 // ------------------------------
+
 export async function fetchAppConfig() {
   try {
     const ref = doc(db, "configs", "app_config"); 
@@ -44,14 +45,14 @@ export async function fetchAppConfig() {
 
     if (snap.exists()) {
       const data = snap.data();
-      console.log("🔥 Firestore Config Loaded:", data);
+      console.log("Firestore Config Loaded:", data);
       return data;
     } else {
-      console.log("⚠️ No config document found!");
+      console.log("No config document found!");
       return null;
     }
   } catch (error) {
-    console.log("❌ Firestore Config Fetch Failed:", error);
+    console.log("Firestore Config Fetch Failed:", error);
     return null;
   }
 }
